@@ -1236,24 +1236,64 @@ input[type="range"]::-webkit-slider-thumb {
 @media (max-width: 900px) {
   .workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr auto auto;
+    grid-template-rows: auto auto 400px auto auto;
+    height: auto;
+    overflow-y: auto;
   }
 
   .palette-panel {
     border-right: none;
     border-bottom: 1px solid var(--border-subtle);
-    max-height: 200px;
+    max-height: 120px;
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    align-items: center;
+    padding: 10px;
+  }
+  
+  .palette-section {
+    display: flex;
+    margin-bottom: 0;
+    align-items: center;
+  }
+  
+  .palette-section-title {
+    display: none; /* Hide heavy titles to save horiz space */
+  }
+
+  .palette-item {
+    margin-right: 10px;
+    min-width: 140px;
   }
 
   .right-panel {
     border-left: none;
     border-top: 1px solid var(--border-subtle);
-    max-height: 300px;
+    max-height: none; /* Allow full reading of requirements */
   }
 
   .problems-grid {
     grid-template-columns: 1fr;
     padding: 0 20px 40px;
+  }
+  
+  .canvas-panel {
+    min-height: 400px;
+  }
+  
+  .workspace-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    height: auto;
+    padding: 15px;
+  }
+  
+  .workspace-actions {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
   }
 }
 
