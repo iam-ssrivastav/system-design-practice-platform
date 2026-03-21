@@ -1817,8 +1817,21 @@ function loadExample() {
 renderProblems();
 
 // ============================================
-// AUTHENTICATION LOGIC (Mock / Firebase Ready)
+// AUTHENTICATION LOGIC (Firebase Real Cloud)
 // ============================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDXb6DZsvEnXdov3I20sjaHCX1au9-qut0",
+  authDomain: "systemforge-5269d.firebaseapp.com",
+  projectId: "systemforge-5269d",
+  storageBucket: "systemforge-5269d.firebasestorage.app",
+  messagingSenderId: "1018107667228",
+  appId: "1:1018107667228:web:cbfd3550a301e6dfa450d9",
+  measurementId: "G-Q41X253W4G"
+};
+
+// Initialize Firebase SDK
+firebase.initializeApp(firebaseConfig);
+
 let authMode = 'login'; // 'login' or 'signup'
 
 function toggleAuthMode(mode) {
@@ -1852,28 +1865,37 @@ function handleAuth(e) {
   const password = document.getElementById('authPassword').value;
   const name = document.getElementById('authName').value;
   const errorMsg = document.getElementById('authErrorMsg');
-  
-  // Here is where Firebase Auth would drop in.
-  // For now, we mock the auth and save to LocalStorage.
+  const btn = document.getElementById('authSubmitBtn');
   
   if (authMode === 'signup') {
     if (password.length < 6) {
       errorMsg.innerText = 'Password must be at least 6 characters.';
       return;
     }
-    // Mock save user
-    localStorage.setItem('sf_user', JSON.stringify({ email, name }));
-    loginSuccess();
+    btn.innerText = 'Creating account...';
+    
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        return userCredential.user.updateProfile({ displayName: name }).then(() => {
+          loginSuccess();
+        });
+      })
+      .catch((error) => {
+        errorMsg.innerText = error.message;
+        btn.innerText = 'Create Account';
+      });
+      
   } else {
-    // Mock login verification
-    const savedUser = localStorage.getItem('sf_user');
-    if (!savedUser && email !== 'demo@systemforge.com') {
-      errorMsg.innerText = 'Account not found. Try signing up or use demo@systemforge.com';
-      return;
-    }
-    // If exact match or demo fallback
-    localStorage.setItem('sf_user', savedUser || JSON.stringify({ email, name:'Demo User' }));
-    loginSuccess();
+    btn.innerText = 'Logging in...';
+    
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        loginSuccess();
+      })
+      .catch((error) => {
+        errorMsg.innerText = "Invalid credentials. Please try again or create an account.";
+        btn.innerText = 'Log In';
+      });
   }
 }
 
@@ -1883,19 +1905,28 @@ function loginSuccess() {
   document.getElementById('page-dashboard').classList.add('active');
   document.getElementById('mainNav').style.display = 'flex';
   showPage('dashboard');
+  
+  // Revert button logic visually
+  if (authMode === 'signup') document.getElementById('authSubmitBtn').innerText = 'Create Account';
+  else document.getElementById('authSubmitBtn').innerText = 'Log In';
 }
 
 function logoutUser() {
-  localStorage.removeItem('sf_user');
-  document.getElementById('mainNav').style.display = 'none';
-  showPage('auth');
+  firebase.auth().signOut().then(() => {
+    document.getElementById('mainNav').style.display = 'none';
+    showPage('auth');
+  }).catch((error) => {
+    console.error("Sign Out Error", error);
+  });
 }
 
-// Auto-login check on page load
+// Auto-login check on page load via Firebase SDK Listener
 window.addEventListener('DOMContentLoaded', () => {
-  if (localStorage.getItem('sf_user')) {
-    loginSuccess();
-  } else {
-    showPage('auth');
-  }
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      loginSuccess();
+    } else {
+      showPage('auth');
+    }
+  });
 });
