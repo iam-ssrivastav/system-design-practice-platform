@@ -1376,6 +1376,15 @@ input[type="range"]::-webkit-slider-thumb {
   }
 }
 
+@media (max-width: 600px) {
+  .nav {
+    padding: 0 12px;
+  }
+  .nav-title {
+    display: none; /* Free up horizontal space on narrow screens */
+  }
+}
+
 /* Context Menu */
 .context-menu {
   position: fixed;
