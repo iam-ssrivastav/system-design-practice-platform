@@ -1963,6 +1963,11 @@ function handleAuth(e) {
     firebase.auth().createUserWithEmailAndPassword(email, password)
       .then((userCredential) => {
         return userCredential.user.updateProfile({ displayName: name }).then(() => {
+          // Send verification email
+          userCredential.user.sendEmailVerification().then(() => {
+            console.log("Verification email sent.");
+            alert("Success! A confirmation email has been sent to " + email + ". Please check your inbox!");
+          });
           loginSuccess();
         });
       })
