@@ -195,7 +195,8 @@ const COMP_DEFS = {
   'search':        {label:'Search Engine', icon:'🔍', color:'#ff5577',  latency:25,  maxLoad:2000},
   'data-warehouse':{label:'Data Warehouse',icon:'🏬', color:'#ffaa00',  latency:300, maxLoad:500},
   'message-queue': {label:'Message Queue', icon:'📬', color:'#ff8844',  latency:5,   maxLoad:10000},
-  'notification':  {label:'Notification',  icon:'🔔', color:'#ff8844',  latency:30,  maxLoad:3000}
+  'notification':  {label:'Notification',  icon:'🔔', color:'#ff8844',  latency:30,  maxLoad:3000},
+  'logger':        {label:'Data Logger',   icon:'📟', color:'#aaaaaa',  latency:1,   maxLoad:50000}
 };
 
   // ---- Configuration Definitions ----
@@ -248,8 +249,11 @@ const CONFIG_DEFS = {
     { key:'batchSize', label:'Batch Size (ms)', type:'number', min:10, max:5000, default:500 }
   ],
   'zookeeper': [
-    { key:'quorum', label:'Core Quorum', type:'number', min:3, max:7, default:3 },
+    { key:'quorum', label:'Quorum Size', type:'number', min:3, max:11, default:3 },
     { key:'heartbeat', label:'Heartbeat (ms)', type:'number', min:100, max:5000, default:1000 }
+  ],
+  'logger': [
+    { key:'logLevel', label:'Export Level', type:'select', options:['INFO', 'DEBUG', 'TRACE (Full Payload)', 'WARN'], default:'TRACE (Full Payload)' }
   ],
   'sql-db': [
     { key:'replication', label:'Replicas', type:'number', min:1, max:10, default:1 },
@@ -1458,6 +1462,20 @@ function updatePackets(dt) {
 
       to.load = Math.min(100, to.load + ((210 * pkt.weight) / Math.max(1, to.maxLoad)));
       pkt.hops.push({ id: to.id, time: simTime });
+      
+      // Logger Intercept Logic (Observability)
+      if (to.type === 'logger') {
+         if (!window._lastLoggerTick || Date.now() - window._lastLoggerTick > 400) {
+            const level = to.config?.logLevel || 'TRACE (Full Payload)';
+            const pid = currentProblem ? currentProblem.id : 0;
+            let mockData = '{ "status": "ok" }';
+            if (pid === 1) mockData = `{ "url": "https://google.com...", "origin": "${Math.random()>0.5?'US':'EU'}" }`;
+            if (pid === 11) mockData = `{ "cart_id": "${Math.floor(Math.random()*9000)}", "total": "$${Math.floor(Math.random()*200)}" }`;
+            
+            addLog('info', `<span style="color:#aaaaaa;">[LOGGER NODE ${to.id}]</span> INTERCEPT ${level}: ${mockData}`);
+            window._lastLoggerTick = Date.now();
+         }
+      }
       
       // Feature: Live Terminal Traffic Stream
       if (!window._lastLogTrace || Date.now() - window._lastLogTrace > 250) {
