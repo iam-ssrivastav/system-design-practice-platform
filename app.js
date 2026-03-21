@@ -2,6 +2,22 @@
 // SYSTEMFORGE - System Design Practice Platform
 // Core Application Logic
 // ============================================
+// ---- Feature Toggles ----
+function toggleTheme() {
+  const current = document.body.dataset.theme;
+  const newTheme = current === 'light' ? 'dark' : 'light';
+  document.body.dataset.theme = newTheme;
+  localStorage.setItem('systemforge_theme', newTheme);
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.innerText = newTheme === 'light' ? '🌙' : '☀️';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('systemforge_theme') || 'dark';
+  document.body.dataset.theme = saved;
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.innerText = saved === 'light' ? '🌙' : '☀️';
+});
 
 // ---- Problem Data ----
 const PROBLEMS = [
