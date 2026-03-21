@@ -1476,12 +1476,16 @@ function updatePackets(dt) {
         }
       }
 
-      to.load = Math.min(100, to.load + ((210 * pkt.weight) / Math.max(1, to.maxLoad)));
+      // Calculate processing load per packet. Logger nodes need higher multipliers to visibly register on their 50k maxLoad pools
+      let weightMulti = 210;
+      if (to.type === 'logger') weightMulti = 5000;
+      
+      to.load = Math.min(100, to.load + ((weightMulti * pkt.weight) / Math.max(1, to.maxLoad)));
       pkt.hops.push({ id: to.id, time: simTime });
       
       // Logger Intercept Logic (Observability)
       if (to.type === 'logger') {
-         if (!window._lastLoggerTick || Date.now() - window._lastLoggerTick > 400) {
+         if (!window._lastLoggerTick || Date.now() - window._lastLoggerTick > 1000) {
             const level = to.config?.logLevel || 'TRACE (Full Payload)';
             const pid = currentProblem ? currentProblem.id : 0;
             let mockData = '{ "status": "ok" }';
@@ -1494,7 +1498,7 @@ function updatePackets(dt) {
       }
       
       // Feature: Live Terminal Traffic Stream
-      if (!window._lastLogTrace || Date.now() - window._lastLogTrace > 250) {
+      if (!window._lastLogTrace || Date.now() - window._lastLogTrace > 1200) {
         let logMsg = '';
         const ms = Math.floor(Math.random() * 80 + 12);
         const hash = Math.random().toString(36).substring(2, 8);
