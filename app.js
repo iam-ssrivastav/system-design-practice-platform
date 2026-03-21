@@ -570,16 +570,26 @@ function drawConnections() {
     ctx.moveTo(fx, fy);
     ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, tix, tiy);
     
-    const baseColor = conn.active ? 'rgba(0, 212, 170, 0.9)' : 'rgba(124, 106, 255, 0.4)';
-    ctx.strokeStyle = baseColor;
-    ctx.lineWidth = conn.active ? 2.5 : 1.5;
-    
+    // Animate a sleek, dashed flow-line for active connections (AWS / Enterprise style)
     if (conn.active) {
-       ctx.shadowColor = 'rgba(0, 212, 170, 0.6)';
-       ctx.shadowBlur = 8;
+       ctx.setLineDash([8, 8]); // the "dash" separation
+       ctx.lineDashOffset = -(simTime * 40); // animate flow forward
+       ctx.strokeStyle = 'rgba(0, 212, 170, 0.8)';
+       ctx.lineWidth = 2;
+       ctx.shadowColor = 'rgba(0, 212, 170, 0.4)';
+       ctx.shadowBlur = 6;
+    } else {
+       ctx.setLineDash([]);
+       ctx.strokeStyle = 'rgba(124, 106, 255, 0.3)';
+       ctx.lineWidth = 1.5;
+       ctx.shadowBlur = 0;
     }
+    
     ctx.stroke();
-    ctx.shadowBlur = 0; // reset
+    
+    // Reset dashes and shadow before drawing sharp Arrowhead
+    ctx.setLineDash([]);
+    ctx.shadowBlur = 0;
 
     // Draw a sharp Professional Chevron Arrowhead
     const arrAngle = Math.atan2(ty - cp2y, tx - cp2x);
@@ -587,12 +597,11 @@ function drawConnections() {
     ctx.translate(tix, tiy);
     ctx.rotate(arrAngle);
     ctx.beginPath();
-    ctx.moveTo(2, 0); // Point slightly forward
-    ctx.lineTo(-12, -6);
-    ctx.lineTo(-9, 0); // Inner chevron indent
-    ctx.lineTo(-12, 6);
+    ctx.moveTo(0, 0); 
+    ctx.lineTo(-10, -5);
+    ctx.lineTo(-10, 5); 
     ctx.closePath();
-    ctx.fillStyle = baseColor;
+    ctx.fillStyle = conn.active ? 'rgba(0, 212, 170, 0.9)' : 'rgba(124, 106, 255, 0.5)';
     ctx.fill();
     ctx.restore();
   });
@@ -657,41 +666,10 @@ function drawComponents() {
 }
 
 function drawPackets() {
-  simPackets.forEach(pkt => {
-    const baseColor = pkt.error ? '#ff4466' : '#00d4aa';
-    
-    // Fallback if tail coordinates aren't fully baked
-    const tailX = pkt.tailX || pkt.x;
-    const tailY = pkt.tailY || pkt.y;
-    
-    const angle = Math.atan2(pkt.y - tailY, pkt.x - tailX);
-    const len = 18; // length of the data trace
-
-    ctx.save();
-    ctx.translate(pkt.x, pkt.y);
-    ctx.rotate(angle);
-
-    // Dynamic glowing trace body (looks like a comet/energy beam)
-    ctx.beginPath();
-    ctx.moveTo(4, 0);                 // nose
-    ctx.lineTo(-len, -2.5);           // top tail edge
-    ctx.quadraticCurveTo(-len-2, 0, -len, 2.5); // tail curve
-    ctx.closePath();
-    
-    const grad = ctx.createLinearGradient(4, 0, -len, 0);
-    grad.addColorStop(0, baseColor);
-    grad.addColorStop(1, 'rgba(255,255,255,0)');
-    
-    ctx.fillStyle = grad;
-    
-    // Add intense glow
-    ctx.shadowColor = baseColor;
-    ctx.shadowBlur = 12;
-    ctx.fill();
-    ctx.restore();
-  });
+  // Packet visualizations are now handled by animated dashed lines in drawConnections
+  // This function now only handles rendering Floating Error Texts (e.g. 503, 502, RIP) for dropped packets
   
-  // Dropped Packets (HTTP Errors)
+  // Dropped Packets (HTTP Errors/Timeouts)
   for (let i = droppedPackets.length - 1; i >= 0; i--) {
     const d = droppedPackets[i];
     const age = simTime - d.spawnTime;
