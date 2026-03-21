@@ -658,14 +658,37 @@ function drawComponents() {
 
 function drawPackets() {
   simPackets.forEach(pkt => {
+    const baseColor = pkt.error ? '#ff4466' : '#00d4aa';
+    
+    // Fallback if tail coordinates aren't fully baked
+    const tailX = pkt.tailX || pkt.x;
+    const tailY = pkt.tailY || pkt.y;
+    
+    const angle = Math.atan2(pkt.y - tailY, pkt.x - tailX);
+    const len = 18; // length of the data trace
+
+    ctx.save();
+    ctx.translate(pkt.x, pkt.y);
+    ctx.rotate(angle);
+
+    // Dynamic glowing trace body (looks like a comet/energy beam)
     ctx.beginPath();
-    ctx.arc(pkt.x, pkt.y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = pkt.error ? '#ff4466' : '#00d4aa';
+    ctx.moveTo(4, 0);                 // nose
+    ctx.lineTo(-len, -2.5);           // top tail edge
+    ctx.quadraticCurveTo(-len-2, 0, -len, 2.5); // tail curve
+    ctx.closePath();
+    
+    const grad = ctx.createLinearGradient(4, 0, -len, 0);
+    grad.addColorStop(0, baseColor);
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    
+    ctx.fillStyle = grad;
+    
+    // Add intense glow
+    ctx.shadowColor = baseColor;
+    ctx.shadowBlur = 12;
     ctx.fill();
-    ctx.shadowColor = pkt.error ? '#ff4466' : '#00d4aa';
-    ctx.shadowBlur = 8;
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    ctx.restore();
   });
   
   // Dropped Packets (HTTP Errors)
@@ -1371,15 +1394,28 @@ function updatePackets(dt) {
     const to = components.find(c => c.id === pkt.toId);
     if (!from || !to) { simPackets.splice(i, 1); continue; }
     
-    // Interpolate position along curve
+    // Interpolate position along exact S-curve (Cubic Bezier)
     const fx = from.x + 70, fy = from.y + 35;
     const tx = to.x + 70, ty = to.y + 35;
-    const mx = (fx+tx)/2, my = (fy+ty)/2;
-    const dx = tx-fx, dy = ty-fy;
-    const cx = mx - dy*0.15, cy = my + dx*0.15;
+    const dx = tx - fx, dy = ty - fy;
+    
+    const cp1x = fx + (Math.abs(dx) > Math.abs(dy) ? dx * 0.4 : 0);
+    const cp1y = fy + (Math.abs(dy) >= Math.abs(dx) ? dy * 0.4 : 0);
+    const cp2x = tx - (Math.abs(dx) > Math.abs(dy) ? dx * 0.4 : 0);
+    const cp2y = ty - (Math.abs(dy) >= Math.abs(dx) ? dy * 0.4 : 0);
+    
     const t = Math.min(1, pkt.progress);
-    pkt.x = (1-t)*(1-t)*fx + 2*(1-t)*t*cx + t*t*tx;
-    pkt.y = (1-t)*(1-t)*fy + 2*(1-t)*t*cy + t*t*ty;
+    const u = 1 - t;
+    
+    // Calculate current position
+    pkt.x = u*u*u*fx + 3*u*u*t*cp1x + 3*u*t*t*cp2x + t*t*t*tx;
+    pkt.y = u*u*u*fy + 3*u*u*t*cp1y + 3*u*t*t*cp2y + t*t*t*ty;
+
+    // Calculate trailing point to determine drawing angle
+    const prevT = Math.max(0, t - 0.05);
+    const pu = 1 - prevT;
+    pkt.tailX = pu*pu*pu*fx + 3*pu*pu*prevT*cp1x + 3*pu*prevT*prevT*cp2x + prevT*prevT*prevT*tx;
+    pkt.tailY = pu*pu*pu*fy + 3*pu*pu*prevT*cp1y + 3*pu*prevT*prevT*cp2y + prevT*prevT*prevT*ty;
 
     if (pkt.progress >= 1) {
       if (to.dead) {
