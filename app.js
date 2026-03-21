@@ -1,28 +1,3 @@
-// ============================================
-// SYSTEMFORGE - System Design Practice Platform
-// Core Application Logic
-// ============================================
-// ---- Feature Toggles ----
-function toggleTheme() {
-  const current = document.body.dataset.theme;
-  const newTheme = current === 'light' ? 'dark' : 'light';
-  document.body.dataset.theme = newTheme;
-  localStorage.setItem('systemforge_theme', newTheme);
-  const btn = document.getElementById('themeToggleBtn');
-  if (btn) btn.innerText = newTheme === 'light' ? '🌙' : '☀️';
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem('systemforge_theme') || 'dark';
-  document.body.dataset.theme = saved;
-  const btn = document.getElementById('themeToggleBtn');
-  if (btn) btn.innerText = saved === 'light' ? '🌙' : '☀️';
-});
-
-function isLightMode() {
-  return document.body.dataset.theme === 'light';
-}
-
 // ---- Problem Data ----
 const PROBLEMS = [
   { id:1, title:"URL Shortener", difficulty:"easy", category:"url-shortener", isPremium:false,
@@ -610,7 +585,7 @@ function drawConnections() {
        // removed heavy shadowBlur to fix performance lag on older devices
     } else {
        ctx.setLineDash([]);
-       ctx.strokeStyle = isLightMode() ? 'rgba(0,0,0,0.15)' : 'rgba(124, 106, 255, 0.3)';
+       ctx.strokeStyle = 'rgba(124, 106, 255, 0.3)';
        ctx.lineWidth = 1.5;
     }
     
@@ -665,11 +640,11 @@ function drawComponents() {
     ctx.fillText(def.icon, x + 10, y + 32);
     // Label
     ctx.font = 'bold 12px Inter, sans-serif';
-    ctx.fillStyle = comp.dead ? '#ff4466' : (isLightMode() ? '#18181b' : '#e8e8ff');
+    ctx.fillStyle = comp.dead ? '#ff4466' : '#e8e8ff';
     ctx.fillText(comp.name || def.label, x + 38, y + 28);
     // Sublabel
     ctx.font = '10px Inter, sans-serif';
-    ctx.fillStyle = isLightMode() ? '#71717a' : '#6a6a99';
+    ctx.fillStyle = '#6a6a99';
     let sublabel = comp.dead ? '❌ DOWN' : `${Math.round(comp.load)}% load`;
     if (comp.type === 'client') sublabel = comp.dead ? '❌ OFFLINE' : 'Traffic Generator';
     ctx.fillText(sublabel, x + 38, y + 44);
