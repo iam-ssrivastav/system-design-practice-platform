@@ -537,29 +537,62 @@ function drawConnections() {
     const from = components.find(c => c.id === conn.from);
     const to = components.find(c => c.id === conn.to);
     if (!from || !to) return;
+    
+    // Centers of the nodes
     const fx = from.x + 70, fy = from.y + 35;
     const tx = to.x + 70, ty = to.y + 35;
-    // Curved line
-    const mx = (fx + tx) / 2, my = (fy + ty) / 2;
+    
     const dx = tx - fx, dy = ty - fy;
-    const cx = mx - dy * 0.15, cy = my + dx * 0.15;
+    
+    // Draw.io style orthogonal S-curve (Cubic Bezier)
+    // Biased towards the dominant axis for a clean flow-chart look
+    const cp1x = fx + (Math.abs(dx) > Math.abs(dy) ? dx * 0.4 : 0);
+    const cp1y = fy + (Math.abs(dy) >= Math.abs(dx) ? dy * 0.4 : 0);
+    const cp2x = tx - (Math.abs(dx) > Math.abs(dy) ? dx * 0.4 : 0);
+    const cp2y = ty - (Math.abs(dy) >= Math.abs(dx) ? dy * 0.4 : 0);
+
+    // Calculate exact bounding box collision so the arrow stops on the edge of the box
+    let tix = tx, tiy = ty;
+    const tdx = tx - cp2x, tdy = ty - cp2y;
+    
+    if (tdx !== 0 || tdy !== 0) {
+      const scaleX = 73 / Math.abs(tdx); // 70px + 3px padding
+      const scaleY = 38 / Math.abs(tdy); // 35px + 3px padding
+      const scale = Math.min(scaleX, Math.abs(tdy) === 0 ? Infinity : scaleY, Math.abs(tdx) === 0 ? Infinity : scaleX);
+      if (scale < 1) {
+        tix = tx - tdx * scale;
+        tiy = ty - tdy * scale;
+      }
+    }
+
+    // Draw the Line
     ctx.beginPath();
     ctx.moveTo(fx, fy);
-    ctx.quadraticCurveTo(cx, cy, tx, ty);
-    ctx.strokeStyle = conn.active ? 'rgba(124,106,255,0.6)' : 'rgba(124,106,255,0.2)';
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, tix, tiy);
+    
+    const baseColor = conn.active ? 'rgba(0, 212, 170, 0.9)' : 'rgba(124, 106, 255, 0.4)';
+    ctx.strokeStyle = baseColor;
     ctx.lineWidth = conn.active ? 2.5 : 1.5;
+    
+    if (conn.active) {
+       ctx.shadowColor = 'rgba(0, 212, 170, 0.6)';
+       ctx.shadowBlur = 8;
+    }
     ctx.stroke();
-    // Arrow
-    const angle = Math.atan2(ty - cy, tx - cx);
+    ctx.shadowBlur = 0; // reset
+
+    // Draw a sharp Professional Chevron Arrowhead
+    const arrAngle = Math.atan2(ty - cp2y, tx - cp2x);
     ctx.save();
-    ctx.translate(tx, ty);
-    ctx.rotate(angle);
+    ctx.translate(tix, tiy);
+    ctx.rotate(arrAngle);
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-10, -5);
-    ctx.lineTo(-10, 5);
+    ctx.moveTo(2, 0); // Point slightly forward
+    ctx.lineTo(-12, -6);
+    ctx.lineTo(-9, 0); // Inner chevron indent
+    ctx.lineTo(-12, 6);
     ctx.closePath();
-    ctx.fillStyle = conn.active ? 'rgba(124,106,255,0.6)' : 'rgba(124,106,255,0.25)';
+    ctx.fillStyle = baseColor;
     ctx.fill();
     ctx.restore();
   });
