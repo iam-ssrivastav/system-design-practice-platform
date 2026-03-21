@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btn) btn.innerText = saved === 'light' ? '🌙' : '☀️';
 });
 
+function isLightMode() {
+  return document.body.dataset.theme === 'light';
+}
+
 // ---- Problem Data ----
 const PROBLEMS = [
   { id:1, title:"URL Shortener", difficulty:"easy", category:"url-shortener", isPremium:false,
@@ -426,6 +430,13 @@ function renderProblems(filter = 'all') {
         <button class="start-btn" onclick="startProblem(${p.id})">${p.isPremium ? 'Unlock Pro →' : 'Start →'}</button>
       </div>`;
     grid.appendChild(card);
+    
+    // Feature UX: Entire Card is Clickable
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', (e) => {
+      // Don't trigger if they specifically clicked a nested button with another handler, though we only have one
+      loadProblem(p.id);
+    });
   });
 }
 
@@ -599,7 +610,7 @@ function drawConnections() {
        // removed heavy shadowBlur to fix performance lag on older devices
     } else {
        ctx.setLineDash([]);
-       ctx.strokeStyle = 'rgba(124, 106, 255, 0.3)';
+       ctx.strokeStyle = isLightMode() ? 'rgba(0,0,0,0.15)' : 'rgba(124, 106, 255, 0.3)';
        ctx.lineWidth = 1.5;
     }
     
@@ -654,11 +665,11 @@ function drawComponents() {
     ctx.fillText(def.icon, x + 10, y + 32);
     // Label
     ctx.font = 'bold 12px Inter, sans-serif';
-    ctx.fillStyle = comp.dead ? '#ff4466' : '#e8e8ff';
+    ctx.fillStyle = comp.dead ? '#ff4466' : (isLightMode() ? '#18181b' : '#e8e8ff');
     ctx.fillText(comp.name || def.label, x + 38, y + 28);
     // Sublabel
     ctx.font = '10px Inter, sans-serif';
-    ctx.fillStyle = '#6a6a99';
+    ctx.fillStyle = isLightMode() ? '#71717a' : '#6a6a99';
     let sublabel = comp.dead ? '❌ DOWN' : `${Math.round(comp.load)}% load`;
     if (comp.type === 'client') sublabel = comp.dead ? '❌ OFFLINE' : 'Traffic Generator';
     ctx.fillText(sublabel, x + 38, y + 44);
