@@ -1461,14 +1461,33 @@ function updatePackets(dt) {
       
       // Feature: Live Terminal Traffic Stream
       if (!window._lastLogTrace || Date.now() - window._lastLogTrace > 250) {
-        if (Math.random() > 0.5) {
-          const endpoints = ['/api/v1/checkout', '/user/profile', '/search?q=laptop', '/api/v2/auth', '/catalog/items'];
-          const ep = endpoints[Math.floor(Math.random()*endpoints.length)];
-          const ms = Math.floor(Math.random() * 80 + 12);
-          addLog('info', `[HTTP 200] GET ${ep} -> Node ${to.id} (${ms}ms)`);
-        } else if (to.type === 'sql-db' || to.type === 'nosql-db') {
-          addLog('success', `[DB QUERY] SELECT * FROM records WHERE id='${Math.floor(Math.random()*9000)}'`);
+        let logMsg = '';
+        const ms = Math.floor(Math.random() * 80 + 12);
+        const hash = Math.random().toString(36).substring(2, 8);
+        const isDB = (to.type === 'sql-db' || to.type === 'nosql-db');
+        const isCache = (to.type === 'cache');
+        const pid = currentProblem ? currentProblem.id : 0;
+        
+        if (pid === 1) { // URL Shortener
+           if (isDB) logMsg = `[DB WRITE] INSERT urls (hash, long_url) VALUES ('${hash}')`;
+           else if (isCache) logMsg = `[CACHE HIT] GET sys.fg/${hash} (${ms}ms)`;
+           else logMsg = Math.random() > 0.5 ? `[HTTP 201] POST /shorten -> sys.fg/${hash} (${ms}ms)` : `[HTTP 302] GET sys.fg/${hash} -> Redirecting (${ms}ms)`;
+        } else if (pid === 2) { // WhatsApp
+           if (isDB) logMsg = `[DB SYNC] Cassandra Write: msg_id_${hash}`;
+           else logMsg = `[WSS 200] /chat/stream -> Delivered msg_${hash} (${ms}ms)`;
+        } else if (pid === 11) { // Amazon / Flipkart
+           if (isDB) logMsg = `[DB TXN] COMMIT Order_${hash} (ACID)`;
+           else logMsg = `[HTTP 200] POST /checkout -> Validating Cart (${ms}ms)`;
+        } else if (pid === 12) { // Ticketmaster
+           if (isDB || isCache) logMsg = `[REDLOCK] Seat locked via TTL for user_${hash}`;
+           else logMsg = `[HTTP 201] POST /book -> Reserving Ticket (${ms}ms)`;
+        } else { // Generic
+           if (isDB) logMsg = `[DB QUERY] SELECT * FROM records WHERE id='${hash}'`;
+           else if (isCache) logMsg = `[CACHE HIT] GET payload_${hash} (${ms}ms)`;
+           else logMsg = `[HTTP 200] GET /api/v1/data -> Node ${to.id} (${ms}ms)`;
         }
+        
+        addLog(isDB ? 'warning' : isCache ? 'info' : 'success', logMsg);
         window._lastLogTrace = Date.now();
       }
 
