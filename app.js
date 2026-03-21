@@ -673,10 +673,20 @@ function drawPackets() {
     if (age > 1) { droppedPackets.splice(i, 1); continue; } // decay after 1s
     
     ctx.globalAlpha = 1 - age;
-    ctx.fillStyle = '#ff4466';
-    ctx.font = 'bold 12px Inter';
+    ctx.font = 'bold 14px Inter';
     ctx.textAlign = 'center';
-    ctx.fillText(d.msg, d.x, d.y - (age * 20)); // float up
+    
+    const px = d.x + (d.vx || 0) * age;
+    const py = d.y - ((d.vy || 20) * age);
+    
+    // Strong black outline prevents text from blurring together when heavily overlapped
+    ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+    ctx.lineWidth = 3;
+    ctx.strokeText(d.msg, px, py);
+    
+    ctx.fillStyle = '#ff4466';
+    ctx.fillText(d.msg, px, py);
+    
     ctx.globalAlpha = 1;
   }
 }
@@ -1415,8 +1425,8 @@ function updatePackets(dt) {
       if (to.dead) {
         pkt.error = true;
         simStats.errors += pkt.weight;
-        if (droppedPackets.length < 20) {
-           droppedPackets.push({ x: pkt.x + (Math.random()-0.5)*40, y: pkt.y + (Math.random()-0.5)*40, spawnTime: simTime, msg: 'RIP' });
+        if (droppedPackets.length < 25) {
+           droppedPackets.push({ x: pkt.x, y: pkt.y, spawnTime: simTime, msg: 'RIP', vx: (Math.random()-0.5)*80, vy: 30 + Math.random()*50 });
         }
         simPackets.splice(i, 1);
         continue;
@@ -1424,8 +1434,8 @@ function updatePackets(dt) {
       if (to.load >= 99 && to.type !== 'client') {
         pkt.error = true;
         simStats.errors += pkt.weight;
-        if (droppedPackets.length < 20) {
-           droppedPackets.push({ x: pkt.x + (Math.random()-0.5)*40, y: pkt.y + (Math.random()-0.5)*40, spawnTime: simTime, msg: '503' });
+        if (droppedPackets.length < 25) {
+           droppedPackets.push({ x: pkt.x, y: pkt.y, spawnTime: simTime, msg: '503', vx: (Math.random()-0.5)*80, vy: 30 + Math.random()*50 });
         }
         simPackets.splice(i, 1);
         continue;
@@ -1466,8 +1476,8 @@ function updatePackets(dt) {
           if (healthy.length === 0) {
             pkt.error = true;
             simStats.errors += pkt.weight;
-            if (droppedPackets.length < 20) {
-               droppedPackets.push({ x: pkt.x + (Math.random()-0.5)*40, y: pkt.y + (Math.random()-0.5)*40, spawnTime: simTime, msg: '502' });
+            if (droppedPackets.length < 25) {
+               droppedPackets.push({ x: pkt.x, y: pkt.y, spawnTime: simTime, msg: '502', vx: (Math.random()-0.5)*80, vy: 30 + Math.random()*50 });
             }
             simPackets.splice(i, 1);
             continue;
