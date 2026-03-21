@@ -1670,6 +1670,10 @@ function updateSystemAdvisor(force = false) {
   if (!simRunning && !force) return;
   if (advisorDismissed && !force) return;
   
+  // Hard throttle UI updates to 1 FPS to prevent DOM reflow thrashing
+  if (!force && window._lastAdvisorTick && (Date.now() - window._lastAdvisorTick < 1000)) return;
+  window._lastAdvisorTick = Date.now();
+  
   const advisor = document.getElementById('systemAdvisor');
   const body = document.getElementById('advisorBody');
   let issues = [];
