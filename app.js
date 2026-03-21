@@ -409,8 +409,10 @@ function renderProblems(filter = 'all') {
     // Feature UX: Entire Card is Clickable
     card.style.cursor = 'pointer';
     card.addEventListener('click', (e) => {
-      // Don't trigger if they specifically clicked a nested button with another handler, though we only have one
-      loadProblem(p.id);
+      // Don't trigger if they specifically clicked the start button (which fires startProblem natively)
+      if (e.target.tagName !== 'BUTTON') {
+        startProblem(p.id);
+      }
     });
   });
 }
