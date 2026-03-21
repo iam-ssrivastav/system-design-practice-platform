@@ -1236,7 +1236,7 @@ input[type="range"]::-webkit-slider-thumb {
 @media (max-width: 900px) {
   .workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 400px auto auto;
+    grid-template-rows: auto auto 400px auto;
     height: auto;
     overflow-y: auto;
   }
@@ -1278,7 +1278,7 @@ input[type="range"]::-webkit-slider-thumb {
     padding: 0 20px 40px;
   }
   
-  .canvas-panel {
+  .canvas-container {
     min-height: 400px;
   }
   
