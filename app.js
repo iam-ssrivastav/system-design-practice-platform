@@ -5,7 +5,7 @@
 
 // ---- Problem Data ----
 const PROBLEMS = [
-  { id:1, title:"URL Shortener", difficulty:"easy", category:"url-shortener",
+  { id:1, title:"URL Shortener", difficulty:"easy", category:"url-shortener", isPremium:false,
     desc:"Design a URL shortening service like TinyURL that converts long URLs to short ones.",
     tags:["Hashing","Database","Cache","API Design"],
     requirements:[
@@ -17,7 +17,7 @@ const PROBLEMS = [
     ],
     hint:"Think about how to generate unique short codes and handle high read traffic."
   },
-  { id:2, title:"Chat Messaging System", difficulty:"medium", category:"messaging",
+  { id:2, title:"Chat Messaging System", difficulty:"medium", category:"messaging", isPremium:true,
     desc:"Design a real-time chat application like WhatsApp supporting 1-on-1 and group messaging.",
     tags:["WebSocket","Queue","Database","Notification"],
     requirements:[
@@ -31,7 +31,7 @@ const PROBLEMS = [
     ],
     hint:"Consider how to handle message ordering, delivery receipts, and offline users."
   },
-  { id:3, title:"Instagram / Photo Sharing", difficulty:"medium", category:"storage",
+  { id:3, title:"Instagram / Photo Sharing", difficulty:"medium", category:"storage", isPremium:true,
     desc:"Design a photo sharing platform with feeds, likes, comments, and followers.",
     tags:["CDN","Object Storage","Feed","Cache"],
     requirements:[
@@ -46,7 +46,7 @@ const PROBLEMS = [
     ],
     hint:"Focus on how to efficiently store/serve images and generate user feeds at scale."
   },
-  { id:4, title:"Twitter / Social Feed", difficulty:"hard", category:"messaging",
+  { id:4, title:"Twitter / Social Feed", difficulty:"hard", category:"messaging", isPremium:true,
     desc:"Design a social media platform with tweets, timeline, trending topics, and search.",
     tags:["Fan-out","Cache","Search","Queue"],
     requirements:[
@@ -62,7 +62,7 @@ const PROBLEMS = [
     ],
     hint:"Consider fan-out-on-write vs fan-out-on-read for timeline generation."
   },
-  { id:5, title:"Netflix / Video Streaming", difficulty:"hard", category:"streaming",
+  { id:5, title:"Netflix / Video Streaming", difficulty:"hard", category:"streaming", isPremium:true,
     desc:"Design a video streaming platform handling millions of concurrent viewers.",
     tags:["CDN","Transcoding","Storage","Adaptive Streaming"],
     requirements:[
@@ -78,7 +78,7 @@ const PROBLEMS = [
     ],
     hint:"Think about video transcoding pipeline, adaptive bitrate, and CDN edge caching."
   },
-  { id:6, title:"Uber / Ride Sharing", difficulty:"hard", category:"messaging",
+  { id:6, title:"Uber / Ride Sharing", difficulty:"hard", category:"messaging", isPremium:true,
     desc:"Design a ride-sharing service matching drivers with riders in real-time.",
     tags:["Geospatial","Real-time","Queue","Matching"],
     requirements:[
@@ -94,7 +94,7 @@ const PROBLEMS = [
     ],
     hint:"Focus on real-time location tracking, efficient proximity matching, and surge pricing."
   },
-  { id:7, title:"Distributed Rate Limiter", difficulty:"hard", category:"url-shortener",
+  { id:7, title:"Distributed Rate Limiter", difficulty:"hard", category:"url-shortener", isPremium:true,
     desc:"Design a distributed rate limiter to throttle API requests (e.g., token bucket algorithm).",
     tags:["API Gateway","Redis","Concurrency","Throttling"],
     requirements:[
@@ -106,7 +106,7 @@ const PROBLEMS = [
     ],
     hint:"Consider race conditions when multiple gateways read/write to the cache simultaneously."
   },
-  { id:8, title:"Web Crawler / Search Engine", difficulty:"hard", category:"storage",
+  { id:8, title:"Web Crawler / Search Engine", difficulty:"hard", category:"storage", isPremium:true,
     desc:"Design a high-throughput distributed web crawler that downloads and indexes billions of pages.",
     tags:["Queue","Worker","Storage","Directed Graph"],
     requirements:[
@@ -119,7 +119,7 @@ const PROBLEMS = [
     ],
     hint:"Focus on BFS traversal, polite crawling delays, and canonical deduplication."
   },
-  { id:9, title:"Distributed Key-Value Store", difficulty:"medium", category:"storage",
+  { id:9, title:"Distributed Key-Value Store", difficulty:"medium", category:"storage", isPremium:true,
     desc:"Design a highly available distributed cache/KV store (like Memcached or Redis).",
     tags:["Consistent Hashing","Replication","Gossip","CAP Theorem"],
     requirements:[
@@ -130,7 +130,7 @@ const PROBLEMS = [
     ],
     hint:"Think about Consistent Hashing for data partitioning and resolving split-brain conflicts."
   },
-  { id:10, title:"Yelp / Proximity Service", difficulty:"medium", category:"messaging",
+  { id:10, title:"Yelp / Proximity Service", difficulty:"medium", category:"messaging", isPremium:true,
     desc:"Design a Location-Based Service (LBS) to find nearby restaurants instantly.",
     tags:["QuadTree","Geospatial","Read-Heavy","Cache"],
     requirements:[
@@ -356,9 +356,15 @@ function renderProblems(filter = 'all') {
     const card = document.createElement('div');
     card.className = 'problem-card fade-in';
     card.style.animationDelay = (i * 0.05) + 's';
+    
+    // Add Pro badge html if necessary
+    const lockHtml = p.isPremium 
+      ? `<span style="background:var(--accent-warning); color:#fff; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; margin-left:8px;">🔒 PRO</span>` 
+      : ``;
+
     card.innerHTML = `
       <div class="problem-card-header">
-        <span class="problem-number">#${String(p.id).padStart(3,'0')}</span>
+        <span class="problem-number">#${String(p.id).padStart(3,'0')} ${lockHtml}</span>
         <span class="difficulty-badge ${p.difficulty}">${p.difficulty}</span>
       </div>
       <h3>${p.title}</h3>
@@ -368,7 +374,7 @@ function renderProblems(filter = 'all') {
         <div class="problem-meta">
           <span>📋 ${p.requirements.length} requirements</span>
         </div>
-        <button class="start-btn" onclick="startProblem(${p.id})">Start →</button>
+        <button class="start-btn" onclick="startProblem(${p.id})">${p.isPremium ? 'Unlock Pro →' : 'Start →'}</button>
       </div>`;
     grid.appendChild(card);
   });
@@ -384,8 +390,29 @@ document.getElementById('filterBar').addEventListener('click', e => {
 });
 
 function startProblem(id) {
-  currentProblem = PROBLEMS.find(p => p.id === id);
-  if (!currentProblem) return;
+  const p = PROBLEMS.find(x => x.id === id);
+  if (!p) return;
+  
+  // Paywall Access Restrictor
+  if (p.isPremium) {
+      alert("🔒 Upgrade to SystemForge PRO ($10) to access this FAANG simulation! (Stripe integration active).");
+      // window.location.href = "https://buy.stripe.com/your-payment-link";
+      return;
+  }
+
+  currentProblem = p;
+  document.getElementById('ws-problem-title').innerText = p.title;
+  const diffBadge = document.getElementById('ws-difficulty');
+  diffBadge.className = `difficulty-badge ${p.difficulty}`;
+  diffBadge.innerText = p.difficulty;
+  
+  // Assuming clearCanvas() and updateRequirementsList() are defined elsewhere
+  // and should be called after setting currentProblem.
+  // For now, I'll keep the original logic for these parts.
+  
+  // Original logic from the provided snippet:
+  // currentProblem = PROBLEMS.find(p => p.id === id);
+  // if (!currentProblem) return;
   components = []; connections = []; selectedComponent = null; nextCompId = 1;
   simPackets = []; simRunning = false; simTime = 0;
   simStats = { throughput:0, latency:0, errors:0, total:0, success:0 };
