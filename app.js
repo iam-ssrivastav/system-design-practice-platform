@@ -1695,9 +1695,24 @@ function updateSystemAdvisor(force = false) {
   if (issues.length > 0) {
     advisor.style.display = 'block';
     body.className = 'advisor-body ' + level;
-    body.innerHTML = issues.map(i => `<div>${i.text}</div><div class="advisor-advice">${i.advice}</div>`).join('<hr style="border:0;border-top:1px solid rgba(255,255,255,0.05);margin:10px 0;">');
+    body.innerHTML = issues.map(i => `<div>${i.text}</div><div class="advisor-advice" style="margin-top:4px;">${i.advice}</div>`).join('<hr style="border:0;border-top:1px solid rgba(255,255,255,0.05);margin:10px 0;">');
+    window._advisorLastActive = Date.now();
   } else {
-    advisor.style.display = 'none';
+    // Hysteresis to prevent flickering: only hide if it's been 5 seconds since the last issue, OR if system is cooling down.
+    const timeSinceFix = Date.now() - (window._advisorLastActive || 0);
+    const hasSimmeringNodes = components.some(c => c.load > 75);
+    
+    if (advisor.style.display === 'block' && !force) {
+      if (hasSimmeringNodes || timeSinceFix < 4000) {
+        // Hold the display stable while it cools down to prevent annoying pops
+        body.className = 'advisor-body info';
+        body.innerHTML = `<div style="color:var(--text-light); opacity:0.8;">System load is stabilizing...</div>`;
+      } else {
+        advisor.style.display = 'none';
+      }
+    } else if (force) {
+       advisor.style.display = 'none';
+    }
   }
 }
 
