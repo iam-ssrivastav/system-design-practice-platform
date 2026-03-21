@@ -494,9 +494,9 @@ body::before {
   padding: 8px 20px;
   border-radius: var(--radius-sm);
   background: var(--gradient-primary);
-  color: white;
+  color: black;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
   cursor: pointer;
   transition: var(--transition-fast);
@@ -588,8 +588,8 @@ body::before {
 .ws-action-btn.primary {
   background: var(--gradient-primary);
   border: none;
-  color: white;
-  font-weight: 600;
+  color: black;
+  font-weight: 700;
 }
 
 .ws-action-btn.primary:hover {
