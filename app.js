@@ -1815,3 +1815,87 @@ function loadExample() {
   addLog('success', `📦 Loaded example: ${currentProblem.title}`);
 }
 renderProblems();
+
+// ============================================
+// AUTHENTICATION LOGIC (Mock / Firebase Ready)
+// ============================================
+let authMode = 'login'; // 'login' or 'signup'
+
+function toggleAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('authErrorMsg').innerText = '';
+  
+  if (mode === 'login') {
+    document.getElementById('tabLogin').classList.add('active');
+    document.getElementById('tabSignup').classList.remove('active');
+    document.getElementById('tabSignup').style.opacity = '0.6';
+    document.getElementById('tabLogin').style.opacity = '1';
+    
+    document.getElementById('authName').style.display = 'none';
+    document.getElementById('authName').required = false;
+    document.getElementById('authSubmitBtn').innerText = 'Log In';
+  } else {
+    document.getElementById('tabSignup').classList.add('active');
+    document.getElementById('tabLogin').classList.remove('active');
+    document.getElementById('tabLogin').style.opacity = '0.6';
+    document.getElementById('tabSignup').style.opacity = '1';
+    
+    document.getElementById('authName').style.display = 'block';
+    document.getElementById('authName').required = true;
+    document.getElementById('authSubmitBtn').innerText = 'Create Account';
+  }
+}
+
+function handleAuth(e) {
+  e.preventDefault();
+  const email = document.getElementById('authEmail').value;
+  const password = document.getElementById('authPassword').value;
+  const name = document.getElementById('authName').value;
+  const errorMsg = document.getElementById('authErrorMsg');
+  
+  // Here is where Firebase Auth would drop in.
+  // For now, we mock the auth and save to LocalStorage.
+  
+  if (authMode === 'signup') {
+    if (password.length < 6) {
+      errorMsg.innerText = 'Password must be at least 6 characters.';
+      return;
+    }
+    // Mock save user
+    localStorage.setItem('sf_user', JSON.stringify({ email, name }));
+    loginSuccess();
+  } else {
+    // Mock login verification
+    const savedUser = localStorage.getItem('sf_user');
+    if (!savedUser && email !== 'demo@systemforge.com') {
+      errorMsg.innerText = 'Account not found. Try signing up or use demo@systemforge.com';
+      return;
+    }
+    // If exact match or demo fallback
+    localStorage.setItem('sf_user', savedUser || JSON.stringify({ email, name:'Demo User' }));
+    loginSuccess();
+  }
+}
+
+function loginSuccess() {
+  document.getElementById('authErrorMsg').innerText = '';
+  document.getElementById('page-auth').classList.remove('active');
+  document.getElementById('page-dashboard').classList.add('active');
+  document.getElementById('mainNav').style.display = 'flex';
+  showPage('dashboard');
+}
+
+function logoutUser() {
+  localStorage.removeItem('sf_user');
+  document.getElementById('mainNav').style.display = 'none';
+  showPage('auth');
+}
+
+// Auto-login check on page load
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('sf_user')) {
+    loginSuccess();
+  } else {
+    showPage('auth');
+  }
+});

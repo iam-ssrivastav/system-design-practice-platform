@@ -19,21 +19,54 @@
       System is looking good!
     </div>
   </div>
-  <div id="app">
-    <!-- Navigation -->
-    <nav class="nav" id="mainNav">
-      <div class="nav-brand" onclick="showPage('dashboard')">
-        <div class="nav-logo">SF</div>
-        <span class="nav-title">SystemForge</span>
+  <!-- Top Navigation (Visible when logged in) -->
+  <nav class="top-nav" id="mainNav" style="display:none;">
+    <div class="nav-left">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 12l5.25 5 2.625-3 4.125 5 7.5-11"/>
+        </svg>
+        SystemForge
       </div>
-      <div class="nav-links">
-        <button class="nav-link active" data-page="dashboard" onclick="showPage('dashboard')">🏠 Problems</button>
-        <button class="nav-link" data-page="workspace" onclick="showPage('workspace')">🛠️ Workspace</button>
+    </div>
+    <div class="nav-links">
+      <button class="nav-link active" data-page="dashboard" onclick="showPage('dashboard')">Dashboard</button>
+      <button class="nav-link" onclick="logoutUser()" style="color:var(--text-light); opacity: 0.7;">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Container for Pages -->
+  <div class="app-container">
+  
+    <!-- ===== AUTHENTICATION PAGE ===== -->
+    <div class="page active" id="page-auth">
+      <div style="display: flex; justify-content: center; align-items: center; min-height: 80vh; width: 100%;">
+        <div class="glass-panel" style="width: 100%; max-width: 400px; padding: 40px; border-radius: 16px; text-align: center;">
+          <h1 style="margin-bottom: 8px; font-size: 28px; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; color: transparent;">Welcome to SystemForge</h1>
+          <p style="color: var(--text-light); margin-bottom: 30px; font-size: 14px;">Master system design with interactive simulations.</p>
+          
+          <div id="authTabs" style="display: flex; gap: 10px; margin-bottom: 25px;">
+            <button class="ws-action-btn active" style="flex:1; justify-content:center;" onclick="toggleAuthMode('login')" id="tabLogin">Login</button>
+            <button class="ws-action-btn" style="flex:1; justify-content:center; opacity:0.6;" onclick="toggleAuthMode('signup')" id="tabSignup">Sign Up</button>
+          </div>
+
+          <form id="authForm" onsubmit="handleAuth(event)" style="display: flex; flex-direction: column; gap: 15px;">
+            <input type="text" id="authName" placeholder="Full Name" style="display:none; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 15px; outline: none;">
+            <input type="email" id="authEmail" placeholder="Email address" required style="padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 15px; outline: none;">
+            <input type="password" id="authPassword" placeholder="Password" required style="padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 15px; outline: none;">
+            
+            <button type="submit" class="primary" id="authSubmitBtn" style="padding: 14px; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 10px; transition: 0.2s;">
+              Log In
+            </button>
+          </form>
+
+          <p id="authErrorMsg" style="color: #ff5577; font-size: 13px; margin-top: 15px; min-height: 20px;"></p>
+        </div>
       </div>
-    </nav>
+    </div>
 
     <!-- ===== DASHBOARD PAGE ===== -->
-    <div class="page active" id="page-dashboard">
+    <div class="page" id="page-dashboard">
       <div class="hero">
         <div class="hero-badge">⚡ Interactive System Design Practice</div>
         <h1>Master <span class="gradient-text">System Design</span><br/>With Real Simulation</h1>
