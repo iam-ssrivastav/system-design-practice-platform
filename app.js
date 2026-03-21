@@ -142,6 +142,35 @@ const PROBLEMS = [
       {text:"In-Memory Cache for hot zones",needs:["cache"]}
     ],
     hint:"Use a QuadTree or Geohash partitioning index to optimize multi-dimensional spatial queries."
+  },
+  { id:11, title:"Amazon / Flipkart (E-commerce)", difficulty:"hard", category:"storage", isPremium:true,
+    desc:"Design a distributed E-commerce platform handling massive catalog read traffic and high-concurrency checkout.",
+    tags:["CQRS","Saga Pattern","Microservices","Distributed Transactions"],
+    requirements:[
+      {text:"Client (Web & Mobile App)",needs:["client"]},
+      {text:"CDN for Product Images",needs:["cdn"]},
+      {text:"API Gateway / Edge Router",needs:["api-gateway"]},
+      {text:"Catalog Read Service (CQRS)",needs:["microservice"]},
+      {text:"Order/Checkout Service (Saga)",needs:["microservice"]},
+      {text:"Redis Cache (Hot Items & Cart)",needs:["cache"]},
+      {text:"Message Queue (Payment / Inventory Event Sync)",needs:["message-queue"]},
+      {text:"SQL DB for Orders (ACID compliance)",needs:["sql-db"]},
+      {text:"Search Engine (Elasticsearch for Catalog)",needs:["search"],optional:true}
+    ],
+    hint:"Use CQRS to split heavy product reads from order writes, and rely on the Saga Pattern via message queues for handling inventory/payment transactions across microservices."
+  },
+  { id:12, title:"Ticketmaster / BookMyShow", difficulty:"hard", category:"messaging", isPremium:true,
+    desc:"Design a high-concurrency ticket booking system where thousands compete for limited event seats in seconds.",
+    tags:["Distributed Locking","Optimistic Concurrency","Queue","Cache"],
+    requirements:[
+      {text:"Client Portal",needs:["client"]},
+      {text:"Load Balancer",needs:["load-balancer"]},
+      {text:"Booking & Inventory Service",needs:["app-server"]},
+      {text:"Redis Redlock (Distributed Locking)",needs:["cache"]},
+      {text:"Waitlist/Holding Queue",needs:["message-queue"]},
+      {text:"SQL Database (Strict Serializability)",needs:["sql-db"]}
+    ],
+    hint:"Locking the seat temporarily (e.g., 5-minute expiry in Redis) avoids double booking. If payment fails, the lock expires and the queue pushes the next user in."
   }
 ];
 
@@ -1789,6 +1818,36 @@ const EXAMPLES = {
     ],
     connections: [
       [0,1],[1,2],[2,3],[2,4],[3,5],[3,6],[4,6],[5,6]
+    ]
+  },
+  11: {
+    components: [
+      {type:'client', x:50, y:200, name:"Web & Mobile Clients"},
+      {type:'cdn', x:200, y:50, name:"CloudFront Images"},
+      {type:'api-gateway', x:250, y:200, name:"API Gateway"},
+      {type:'microservice', x:450, y:120, name:"Catalog Read (CQRS)"},
+      {type:'microservice', x:450, y:300, name:"Order/Checkout (Saga)"},
+      {type:'cache', x:650, y:120, name:"Redis (Cart/Hot Products)"},
+      {type:'message-queue', x:450, y:450, name:"Kafka (Order Events)"},
+      {type:'sql-db', x:650, y:300, name:"PostgreSQL (ACID Orders)"},
+      {type:'search', x:650, y:50, name:"ElasticSearch Catalog"}
+    ],
+    connections: [
+      [0,1], [0,2], [2,3], [2,4],
+      [3,5], [3,8], [4,5], [4,6], [4,7], [6,7]
+    ]
+  },
+  12: {
+    components: [
+      {type:'client', x:50, y:200, name:"Fan Connections"},
+      {type:'load-balancer', x:250, y:200, name:"L4 Load Balancer"},
+      {type:'app-server', x:450, y:200, name:"Booking Service"},
+      {type:'cache', x:650, y:100, name:"Redis (Distributed Locks)"},
+      {type:'message-queue', x:450, y:350, name:"Waitlist Queue"},
+      {type:'sql-db', x:650, y:300, name:"SQL DB (Seat Maps)"}
+    ],
+    connections: [
+      [0,1], [1,2], [2,3], [2,4], [2,5], [4,2]
     ]
   }
 };
