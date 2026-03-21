@@ -576,20 +576,17 @@ function drawConnections() {
        ctx.lineDashOffset = -(simTime * 40); // animate flow forward
        ctx.strokeStyle = 'rgba(0, 212, 170, 0.8)';
        ctx.lineWidth = 2;
-       ctx.shadowColor = 'rgba(0, 212, 170, 0.4)';
-       ctx.shadowBlur = 6;
+       // removed heavy shadowBlur to fix performance lag on older devices
     } else {
        ctx.setLineDash([]);
        ctx.strokeStyle = 'rgba(124, 106, 255, 0.3)';
        ctx.lineWidth = 1.5;
-       ctx.shadowBlur = 0;
     }
     
     ctx.stroke();
     
-    // Reset dashes and shadow before drawing sharp Arrowhead
+    // Reset dashes before drawing sharp Arrowhead
     ctx.setLineDash([]);
-    ctx.shadowBlur = 0;
 
     // Draw a sharp Professional Chevron Arrowhead
     const arrAngle = Math.atan2(ty - cp2y, tx - cp2x);
