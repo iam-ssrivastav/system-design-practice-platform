@@ -1441,7 +1441,7 @@ function updatePackets(dt) {
         continue;
       }
       
-      // Cache Logic
+      // Cache hit logic
       if (to.type === 'cache') {
         const hitRate = to.config?.hitRate || 85;
         const hit = (Math.random() * 100) < hitRate;
@@ -1450,13 +1450,27 @@ function updatePackets(dt) {
           const lat = (simTime - pkt.startTime) * 1000;
           simStats.latency = simStats.latency === 0 ? lat : simStats.latency * 0.95 + lat * 0.05;
           simPackets.splice(i, 1);
-          to.load = Math.min(100, to.load + ((105 * pkt.weight) / Math.max(1, to.maxLoad)));
+          // Fixed cache load math so it properly registers CPU/Memory utilization
+          to.load = Math.min(100, to.load + ((800 * pkt.weight) / Math.max(1, to.maxLoad)));
           continue;
         }
       }
 
       to.load = Math.min(100, to.load + ((210 * pkt.weight) / Math.max(1, to.maxLoad)));
       pkt.hops.push({ id: to.id, time: simTime });
+      
+      // Feature: Live Terminal Traffic Stream
+      if (!window._lastLogTrace || Date.now() - window._lastLogTrace > 250) {
+        if (Math.random() > 0.5) {
+          const endpoints = ['/api/v1/checkout', '/user/profile', '/search?q=laptop', '/api/v2/auth', '/catalog/items'];
+          const ep = endpoints[Math.floor(Math.random()*endpoints.length)];
+          const ms = Math.floor(Math.random() * 80 + 12);
+          addLog('info', `[HTTP 200] GET ${ep} -> Node ${to.id} (${ms}ms)`);
+        } else if (to.type === 'sql-db' || to.type === 'nosql-db') {
+          addLog('success', `[DB QUERY] SELECT * FROM records WHERE id='${Math.floor(Math.random()*9000)}'`);
+        }
+        window._lastLogTrace = Date.now();
+      }
 
       // Find next hop
       const nextConns = connections.filter(c => c.from === to.id);
