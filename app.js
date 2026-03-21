@@ -709,6 +709,25 @@ document.addEventListener('DOMContentLoaded', () => {
   cc.addEventListener('mousedown', onCanvasMouseDown);
   cc.addEventListener('mousemove', onCanvasMouseMove);
   cc.addEventListener('mouseup', onCanvasMouseUp);
+  
+  // Mobile Touch Support for Canvas Panning and Component Dragging
+  cc.addEventListener('touchstart', e => {
+    if(e.target === document.getElementById('designCanvas')) e.preventDefault();
+    if(e.touches.length > 0) {
+       onCanvasMouseDown({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY, button: 1, preventDefault: ()=>{} });
+    }
+  }, { passive: false });
+  cc.addEventListener('touchmove', e => {
+    if(e.target === document.getElementById('designCanvas')) e.preventDefault();
+    if(e.touches.length > 0) {
+       onCanvasMouseMove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY, preventDefault: ()=>{} });
+    }
+  }, { passive: false });
+  cc.addEventListener('touchend', e => {
+    if(e.target === document.getElementById('designCanvas')) e.preventDefault();
+    onCanvasMouseUp({ button: 1, preventDefault: ()=>{} });
+  }, { passive: false });
+
   cc.addEventListener('wheel', onCanvasWheel, { passive: false });
   cc.addEventListener('contextmenu', onContextMenu);
   cc.addEventListener('dblclick', onCanvasDblClick);
