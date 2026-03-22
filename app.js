@@ -2410,10 +2410,8 @@ function updateSystemAdvisor(force = false) {
         issues.push({ text: `<b>${c.name}</b> compute resources exhausted (100% CPU lock).`, advice: "Advice: Provision additional horizontal nodes via scale-out or increment thread-pool allocation to prevent connection drops." });
       } else if (c.type === 'sql-db' || c.type === 'nosql-db') {
         issues.push({ text: `<b>${c.name}</b> disk I/O saturated (Query bottleneck).`, advice: "Advice: Implement a Redis caching layer upstream, enable partition sharding, or provision active read-replicas." });
-      } else if (c.type === 'load-balancer') {
-        issues.push({ text: `<b>${c.name}</b> network bandwidth saturated (NAT limits exceeded).`, advice: "Advice: Deploy DNS-level round-robin to multiple regional LBs, or optimize internal routing algorithms (Least Connections)." });
-      } else if (c.type === 'api-gateway' || c.type === 'waf') {
-        issues.push({ text: `<b>${c.name}</b> ingress compute layer failing under HTTP flood.`, advice: "Advice: Introduce an Edge CDN upstream to absorb static hits, or scale out gateway proxy nodes horizontally." });
+      } else if (c.type === 'load-balancer' || c.type === 'api-gateway' || c.type === 'waf') {
+        issues.push({ text: `<b>${c.name}</b> ingress compute layer failing under HTTP flood.`, advice: "Advice: Place a CDN <b>between the Users and this Gateway</b> to absorb traffic before it hits your servers, OR click this component and scale up its Maximum Capacity in the Properties tab." });
       } else if (c.type === 'stream-processing' || c.type === 'message-queue') {
         issues.push({ text: `<b>${c.name}</b> internal memory buffer backpressuring.`, advice: "Advice: Increase consumer worker/shard counts to consume the queue log faster." });
       } else {
