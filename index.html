@@ -257,6 +257,14 @@
 
         <!-- Center: Canvas -->
         <div class="canvas-container" id="canvasContainer">
+          <button class="panel-collapse-btn toggle-left" onclick="toggleLeftPanel()" title="Toggle Component Palette">
+            <span id="leftToggleIcon">◀</span>
+          </button>
+          
+          <button class="panel-collapse-btn toggle-right" onclick="toggleRightPanel()" title="Toggle Features Panel">
+            <span id="rightToggleIcon">▶</span>
+          </button>
+
           <canvas id="designCanvas"></canvas>
           <div class="canvas-overlay-info" id="canvasOverlay">
             <div class="icon">🏗️</div>

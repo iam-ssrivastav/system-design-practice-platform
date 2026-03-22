@@ -2851,3 +2851,32 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// ============================================
+// UI COLLAPSE TOGGLES
+// ============================================
+function toggleLeftPanel() {
+  const ws = document.querySelector('.workspace');
+  ws.classList.toggle('left-collapsed');
+  document.getElementById('leftToggleIcon').textContent = ws.classList.contains('left-collapsed') ? '▶' : '◀';
+  
+  // Smoothly resize canvas during CSS grid transition
+  let start = performance.now();
+  requestAnimationFrame(function anim(time) {
+    resizeCanvas();
+    if (time - start < 350) requestAnimationFrame(anim);
+  });
+}
+
+function toggleRightPanel() {
+  const ws = document.querySelector('.workspace');
+  ws.classList.toggle('right-collapsed');
+  document.getElementById('rightToggleIcon').textContent = ws.classList.contains('right-collapsed') ? '◀' : '▶';
+  
+  // Smoothly resize canvas during CSS grid transition
+  let start = performance.now();
+  requestAnimationFrame(function anim(time) {
+    resizeCanvas();
+    if (time - start < 350) requestAnimationFrame(anim);
+  });
+}

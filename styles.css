@@ -544,11 +544,62 @@ body::before {
 
 /* ---------- WORKSPACE PAGE ---------- */
 .workspace {
+  --left-panel-width: 260px;
+  --right-panel-width: 300px;
   display: grid;
-  grid-template-columns: 260px 1fr 300px;
+  grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
   grid-template-rows: auto 1fr auto;
   height: calc(100vh - 64px);
   gap: 0;
+  transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workspace.left-collapsed {
+  --left-panel-width: 0px;
+}
+
+.workspace.right-collapsed {
+  --right-panel-width: 0px;
+}
+
+/* Panel Collapse Buttons */
+.panel-collapse-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 48px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  padding: 0;
+}
+
+.panel-collapse-btn:hover {
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
+}
+
+.panel-collapse-btn.toggle-left {
+  left: 0;
+  border-left: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.panel-collapse-btn.toggle-right {
+  right: 0;
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 /* Problem Header Bar */
@@ -645,6 +696,8 @@ body::before {
   background: rgba(17, 17, 40, 0.7);
   border-right: 1px solid var(--border-subtle);
   overflow-y: auto;
+  overflow-x: hidden;
+  white-space: nowrap;
   padding: 16px;
 }
 
@@ -762,6 +815,10 @@ body::before {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  white-space: nowrap;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .panel-tab-bar {
