@@ -816,7 +816,6 @@ body::before {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-  white-space: nowrap;
   padding-left: 0;
   padding-right: 0;
 }
@@ -857,7 +856,9 @@ body::before {
 .panel-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px;
+  min-width: 320px;
 }
 
 .panel-section {
