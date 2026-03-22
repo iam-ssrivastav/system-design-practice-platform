@@ -752,6 +752,14 @@ function addBody(doc, text, yPos, indent) {
 
 function downloadMasterclassPDF() {
   if (!currentProblem) return;
+  
+  // Security Barrier: Block PDF generation for unauthenticated guests
+  if (!firebase.auth().currentUser && currentProblem.id === 1) {
+      alert("🔒 Please create a free account to download the full PDF Masterclass!");
+      showPage('auth');
+      return;
+  }
+  
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   let pageNum = 1;
