@@ -611,6 +611,28 @@ function updateRequirementsList() {
 }
 
 // ---- PDF Download Engine ----
+// Sanitize text for jsPDF (Helvetica only supports basic Latin chars)
+function sanitizeForPDF(text) {
+  return text
+    .replace(/\u00a9/g, '(c)')
+    .replace(/\u00d7/g, 'x')
+    .replace(/\u2014/g, '-')
+    .replace(/\u2013/g, '-')
+    .replace(/\u2018/g, "'")
+    .replace(/\u2019/g, "'")
+    .replace(/\u201c/g, '"')
+    .replace(/\u201d/g, '"')
+    .replace(/\u2026/g, '...')
+    .replace(/\u2192/g, '->')
+    .replace(/\u2190/g, '<-')
+    .replace(/\u2265/g, '>=')
+    .replace(/\u2264/g, '<=')
+    .replace(/\u2713/g, '[ok]')
+    .replace(/\u2717/g, '[x]')
+    .replace(/\u2022/g, '-')
+    .replace(/[^\x00-\x7F]/g, '');
+}
+
 function addWatermark(doc) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(60);
@@ -621,7 +643,7 @@ function addWatermark(doc) {
 function addPageFooter(doc, pageNum) {
   doc.setFontSize(8);
   doc.setTextColor(160, 160, 160);
-  doc.text(`© 2026 SystemForge PRO | System Design Interview Preparation | Page ${pageNum}`, 20, 285);
+  doc.text(sanitizeForPDF('(c) 2026 SystemForge PRO | System Design Interview Preparation | Page ' + pageNum), 20, 285);
   doc.setDrawColor(220, 220, 230);
   doc.line(20, 282, 190, 282);
 }
@@ -630,7 +652,7 @@ function addSectionTitle(doc, title, yPos) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.setTextColor(124, 106, 255);
-  doc.text(title, 20, yPos);
+  doc.text(sanitizeForPDF(title), 20, yPos);
   doc.setDrawColor(124, 106, 255);
   doc.line(20, yPos + 2, 190, yPos + 2);
   return yPos + 10;
@@ -640,7 +662,7 @@ function addSubSection(doc, title, yPos) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.setTextColor(40, 40, 40);
-  doc.text(title, 20, yPos);
+  doc.text(sanitizeForPDF(title), 20, yPos);
   return yPos + 6;
 }
 
@@ -649,7 +671,7 @@ function addBody(doc, text, yPos, indent) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(80, 80, 80);
-  const lines = doc.splitTextToSize(text, 190 - indent);
+  var lines = doc.splitTextToSize(sanitizeForPDF(text), 190 - indent);
   doc.text(lines, indent, yPos);
   return yPos + (lines.length * 4.5) + 3;
 }
@@ -687,7 +709,7 @@ function downloadMasterclassPDF() {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     doc.setTextColor(80, 80, 80);
-    let desc = doc.splitTextToSize("Design a URL shortening service like TinyURL/Bitly that converts long URLs into compact short links, handles massive read-heavy traffic, and redirects users seamlessly.", 170);
+    let desc = doc.splitTextToSize(sanitizeForPDF("Design a URL shortening service like TinyURL/Bitly that converts long URLs into compact short links, handles massive read-heavy traffic, and redirects users seamlessly."), 170);
     doc.text(desc, 20, 52);
 
     // How to Think
@@ -984,11 +1006,11 @@ function downloadMasterclassPDF() {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(20);
     doc.setTextColor(0, 0, 0);
-    doc.text(problemData.title, 20, 44);
+    doc.text(sanitizeForPDF(problemData.title), 20, 44);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     doc.setTextColor(80, 80, 80);
-    let pdDesc = doc.splitTextToSize(problemData.overview, 170);
+    let pdDesc = doc.splitTextToSize(sanitizeForPDF(problemData.overview), 170);
     doc.text(pdDesc, 20, 52);
 
     let y = 66;
