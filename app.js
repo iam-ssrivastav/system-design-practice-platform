@@ -4,6 +4,61 @@ function toggleMobileMenu() {
   if (menu) menu.classList.toggle('open');
 }
 
+// ---- Floating Background Icons (Login Page) ----
+function spawnFloatingIcons() {
+  const container = document.getElementById('floatingIcons');
+  if (!container) return;
+  
+  const icons = [
+    { emoji: '⚖️', label: 'Load Balancer' },
+    { emoji: '🗄️', label: 'Database' },
+    { emoji: '⚡', label: 'Cache' },
+    { emoji: '📨', label: 'Kafka' },
+    { emoji: '🌐', label: 'CDN' },
+    { emoji: '🛡️', label: 'API Gateway' },
+    { emoji: '🔍', label: 'Search' },
+    { emoji: '💾', label: 'Storage' },
+    { emoji: '🖥️', label: 'Server' },
+    { emoji: '📡', label: 'DNS' },
+    { emoji: '🔗', label: 'Microservice' },
+    { emoji: '🧩', label: 'Queue' },
+    { emoji: '📊', label: 'Monitoring' },
+    { emoji: '🔒', label: 'Auth' },
+    { emoji: '☁️', label: 'Cloud' },
+    { emoji: '🏗️', label: 'Architect' },
+    { emoji: '📋', label: 'Config' },
+    { emoji: '🔄', label: 'Sync' }
+  ];
+  
+  icons.forEach((icon, i) => {
+    const el = document.createElement('div');
+    el.className = 'floating-icon';
+    el.textContent = icon.emoji;
+    el.title = icon.label;
+    
+    // Randomized placement across the full viewport
+    el.style.left = `${Math.random() * 90 + 2}%`;
+    el.style.top = `${Math.random() * 85 + 5}%`;
+    
+    // Each icon gets a unique animation speed for organic motion
+    const driftDur = 4 + Math.random() * 6;  // 4-10s
+    const horizDur = 5 + Math.random() * 8;  // 5-13s
+    el.style.setProperty('--drift-duration', `${driftDur}s`);
+    el.style.setProperty('--horizontal-duration', `${horizDur}s`);
+    
+    // Stagger animation start so they don't sync
+    el.style.animationDelay = `${-(Math.random() * 8)}s`;
+    
+    // Vary sizes slightly
+    el.style.fontSize = `${24 + Math.random() * 20}px`;
+    el.style.opacity = `${0.06 + Math.random() * 0.1}`;
+
+    container.appendChild(el);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', spawnFloatingIcons);
+
 // ---- Problem Data ----
 const PROBLEMS = [
   { id:1, title:"URL Shortener", difficulty:"easy", category:"url-shortener", isPremium:false,

@@ -69,6 +69,31 @@
   --comp-microservice: #55ddaa;
 }
 
+/* Floating Auth Background Icons */
+.floating-icon {
+  position: absolute;
+  font-size: 32px;
+  opacity: 0.12;
+  pointer-events: none;
+  user-select: none;
+  animation: float-drift var(--drift-duration) ease-in-out infinite,
+             float-horizontal var(--horizontal-duration) ease-in-out infinite alternate;
+  text-shadow: 0 0 20px rgba(124, 106, 255, 0.3);
+  filter: blur(0.3px);
+}
+
+@keyframes float-drift {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25% { transform: translateY(-20px) rotate(5deg) scale(1.05); }
+  50% { transform: translateY(-35px) rotate(-3deg) scale(1); }
+  75% { transform: translateY(-15px) rotate(4deg) scale(0.95); }
+}
+
+@keyframes float-horizontal {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(30px); }
+}
+
 [data-theme="light"] {
   --bg-primary: #ffffff;
   --bg-secondary: #f4f4f5;
