@@ -1084,7 +1084,8 @@ function downloadMasterclassPDF() {
   }
   
   // Trigger file download
-  doc.save(`${currentProblem.title.replace(/\s+/g, '_')}_Interview_Guide.pdf`);
+  const safeTitle = currentProblem.title.replace(/[^a-zA-Z0-9]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  doc.save(`${safeTitle}_Interview_Guide.pdf`);
   addLog('success', '📄 Downloaded Full Interview PDF Blueprint!');
 }
 
