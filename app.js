@@ -526,6 +526,12 @@ function downloadMasterclassPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   
+  // Background Watermark (Protects IP)
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(60);
+  doc.setTextColor(240, 240, 248); // Faint bluish-grey background
+  doc.text("SystemForge PRO", 105, 148, { angle: 45, align: "center" });
+  
   // Header Branding
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
