@@ -1870,11 +1870,39 @@ function showTraceTooltip() {
   
   title.textContent = `Step ${traceState.stepIndex + 1}: ${comp.name}`;
   
-  let msg = 'Processes request data...'; // fallback
+  const globalTraceFallback = {
+    'client': 'Initiates HTTP/WS request from user device.',
+    'dns': 'Resolves domain name to IP address (e.g. 192.168.1.1).',
+    'cdn': 'Intercepts request to serve cached static assets/media from edge location.',
+    'load-balancer': c => `Distributes incoming traffic across healthy nodes using ${c.config?.algorithm || 'Round Robin'}.`,
+    'api-gateway': 'Authenticates request, checks rate limits, and forwards to backend services.',
+    'waf': 'Inspects incoming packets for SQLi/XSS malicious payloads.',
+    'rate-limiter': c => `Throttle check (max ${c.config?.rpsLimit || 1000} req/s).`,
+    'web-server': 'Handles HTTP connection and serves requested frontend/API logic.',
+    'app-server': 'Executes core business logic and computational tasks.',
+    'microservice': 'Executes specialized domain logic and communicates via gRPC/REST.',
+    'stream-processing': 'Processes high-throughput realtime data streams.',
+    'zookeeper': 'Provides distributed consensus and service discovery.',
+    'sql-db': c => `Executes ACID-compliant transactional query on DB Master (of ${c.config?.replication || 1} replicas).`,
+    'nosql-db': 'Reads/writes unstructured document data for high throughput.',
+    'cache': c => `Checks in-memory cache. Miss -> Fetch. Hit -> Return (Eviction: ${c.config?.eviction || 'LRU'}).`,
+    'object-storage': 'Retrieves large binary blob (image, video, file) from bucket storage.',
+    'search': 'Executes full-text inverted index search query.',
+    'data-warehouse': 'Runs heavy analytical aggregation query (OLAP).',
+    'message-queue': c => `Appends event to topic queue across ${c.config?.shards || 3} shard(s) for async processing.`,
+    'notification': 'Pushes real-time alert/notification to target device.',
+    'logger': 'Appends telemetry and audit logs for system observability.'
+  };
+  
+  let msg = 'Processes request data...'; // ultimate fallback
   if (PROBLEM_TRACES[currentProblem.id] && PROBLEM_TRACES[currentProblem.id][comp.type]) {
     const traceDef = PROBLEM_TRACES[currentProblem.id][comp.type];
     msg = typeof traceDef === 'function' ? traceDef(comp) : traceDef;
+  } else if (globalTraceFallback[comp.type]) {
+    const fb = globalTraceFallback[comp.type];
+    msg = typeof fb === 'function' ? fb(comp) : fb;
   }
+  
   body.textContent = msg;
   
   // Position tooltip relative to component
