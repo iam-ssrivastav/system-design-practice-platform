@@ -483,34 +483,61 @@ function renderRequirements() {
     
   const notesDesc = document.getElementById('notesContent');
   if (notesDesc) {
-    notesDesc.innerHTML = `<h3>📘 Masterclass: ${currentProblem.title}</h3>
-      <p style="margin-bottom: 20px;">Use the Study Guide below to prepare for your System Design interview.</p>
-      
-      <div style="background: rgba(255,170,0,0.05); border: 1px solid rgba(255,170,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-        <h4 style="color:#ffaa00; font-size:13px; margin-bottom: 8px;">🎯 Interviewer's Focus</h4>
-        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">The interviewer expects you to explicitly articulate your decisions regarding <strong>${currentProblem.tags.join(', ')}</strong> tradeoffs. Focus heavily on solving: <em>"${currentProblem.hint}"</em> before attempting to scale the system.</p>
-      </div>
+    if (currentProblem.id === 1) { // Detailed Alex Xu integration for URL Shortener
+      notesDesc.innerHTML = `<h3>📘 Masterclass: URL Shortener</h3>
+        <p style="margin-bottom: 20px;">Use the Study Guide below to prepare for your System Design interview.</p>
+        
+        <div style="background: rgba(124,106,255,0.05); border: 1px solid rgba(124,106,255,0.2); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+          <h4 style="color:var(--accent-primary); font-size:13px; margin-bottom: 8px;">Step 1: Understand problem & scope</h4>
+          <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+            <strong>Traffic Volume:</strong> 100 million URLs generated per day.<br>
+            <strong>Write Operations:</strong> 100M / 24 / 3600 = 1,160 writes/sec.<br>
+            <strong>Read Operations:</strong> Assuming 10:1 ratio = 11,600 reads/sec.<br>
+            <strong>Storage (10-yr cap):</strong> 365 billion records &times; 100 bytes = <strong>365 TB</strong>.
+          </p>
+        </div>
 
-      <div style="margin-bottom: 16px;">
-        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: How do we achieve High Availability & fault tolerance?</h4>
-        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Eliminate Single Points of Failure (SPOF) by deploying Active-Active Load Balancers with Heartbeat protocols. We make application servers entirely stateless, enabling rapid horizontal auto-scaling. The Database layer uses Master-Replica streaming across multiple Availability Zones to ensure zero data-loss.</p>
-      </div>
-      
-      <div style="margin-bottom: 16px;">
-        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: Database Technology: SQL vs NoSQL trade-offs?</h4>
-        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Relational (SQL) guarantees strict ACID properties (Atomicity, Consistency) making it perfect for transactional safety. NoSQL (Cassandra/DynamoDB) provides immense horizontal scale, flexible schemas, and low-latency reads via denormalization, but frequently compromises on immediate consistency.</p>
-      </div>
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Step 2: High-Level APIs (Redirects)</h4>
+          <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;"><strong>301 Redirect:</strong> "Permanently moved". The browser fully caches the response, aggressively reducing URL server load.<br><strong>302 Redirect:</strong> "Temporarily moved". Best for tracking click-rates and analytics since every request securely hits the shortener API first before redirection.</p>
+        </div>
 
-      <div style="margin-bottom: 16px;">
-        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: What is the optimal caching strategy for this system?</h4>
-        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Implement a Redis/Memcached cluster using a Cache-Aside strategy to absorb heavy read queries. Cache eviction should strictly use LRU (Least Recently Used) coupled with a TTL (Time To Live) to handle stale data eviction safely.</p>
-      </div>
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Step 3: Design Deep Dive (Hashing)</h4>
+          <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;"><strong>Hash Value Length:</strong> We use [0-9, a-z, A-Z] = 62 characters. $62^7 = ~3.5$ trillion capacity, which covers 365 Billion URLs, scaling safely to exactly 7 characters in length.<br>
+          <strong>Algorithms:</strong> Use <strong>Base 62 Conversion</strong> (mapping a unique DB distributed sequential ID to a Base62 string), OR use <strong>Hash + Collision Resolution</strong> (utilize MD5/SHA-1 and truncate the first 7 chars, appending sequences until unique).</p>
+        </div>
+      `;
+    } else {
+      notesDesc.innerHTML = `<h3>📘 Masterclass: ${currentProblem.title}</h3>
+        <p style="margin-bottom: 20px;">Use the Study Guide below to prepare for your System Design interview.</p>
+        
+        <div style="background: rgba(255,170,0,0.05); border: 1px solid rgba(255,170,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+          <h4 style="color:#ffaa00; font-size:13px; margin-bottom: 8px;">🎯 Interviewer's Focus</h4>
+          <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">The interviewer expects you to explicitly articulate your decisions regarding <strong>${currentProblem.tags.join(', ')}</strong> tradeoffs. Focus heavily on solving: <em>"${currentProblem.hint}"</em> before attempting to scale the system.</p>
+        </div>
 
-      <div style="margin-bottom: 16px;">
-        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: How do we decouple and scale heavy workflows?</h4>
-        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: By decoupling heavy synchronous tasks using a distributed Message Queue (Apache Kafka or RabbitMQ). The API Gateway publishes an event payload to the queue and instantly returns an HTTP 202. Dedicated Consumer microservices then pull from the logs at their own pace, providing smooth system-wide back-pressure control.</p>
-      </div>
-    `;
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: How do we achieve High Availability & fault tolerance?</h4>
+          <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Eliminate Single Points of Failure (SPOF) by deploying Active-Active Load Balancers with Heartbeat protocols. We make application servers entirely stateless, enabling rapid horizontal auto-scaling. The Database layer uses Master-Replica streaming across multiple Availability Zones to ensure zero data-loss.</p>
+        </div>
+        
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: Database Technology: SQL vs NoSQL trade-offs?</h4>
+          <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Relational (SQL) guarantees strict ACID properties (Atomicity, Consistency) making it perfect for transactional safety. NoSQL (Cassandra/DynamoDB) provides immense horizontal scale, flexible schemas, and low-latency reads via denormalization, but frequently compromises on immediate consistency.</p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: What is the optimal caching strategy for this system?</h4>
+          <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Implement a Redis/Memcached cluster using a Cache-Aside strategy to absorb heavy read queries. Cache eviction should strictly use LRU (Least Recently Used) coupled with a TTL (Time To Live) to handle stale data eviction safely.</p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: How do we decouple and scale heavy workflows?</h4>
+          <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: By decoupling heavy synchronous tasks using a distributed Message Queue (Apache Kafka or RabbitMQ). The API Gateway publishes an event payload to the queue and instantly returns an HTTP 202. Dedicated Consumer microservices then pull from the logs at their own pace, providing smooth system-wide back-pressure control.</p>
+        </div>
+      `;
+    }
   }
   updateRequirementsList();
 }
@@ -570,55 +597,96 @@ Be explicitly prepared to discuss ${currentProblem.tags.join(', ')} tradeoffs in
   doc.setTextColor(80, 80, 80);
   doc.text(splitHint, 20, 82);
   
-  // Mock Q&A Flashcards
-  let yPos = 105;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(124, 106, 255);
-  doc.text("TECHNICAL INTERVIEW MASTERCLASS", 20, yPos);
-  
-  yPos += 12;
-  doc.setFontSize(11);
-  doc.setTextColor(0, 0, 0);
-  doc.text("Q1. How do we achieve High Availability & fault tolerance?", 20, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(90, 90, 90);
-  let q1 = doc.splitTextToSize("A: Eliminate Single Points of Failure (SPOF) by deploying Active-Active Load Balancers with Heartbeat protocols. We make application servers entirely stateless, enabling rapid horizontal auto-scaling. The Database layer uses Master-Replica streaming across multiple Availability Zones to ensure zero data-loss.", 170);
-  doc.text(q1, 25, yPos + 6);
-  yPos += 24;
+  if (currentProblem.id === 1) { // Detailed Alex Xu URL Shortener PDF Dump
+    // Mock Q&A Flashcards Context Overwrite
+    let yPos = 105;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(124, 106, 255);
+    doc.text("FAANG INTERVIEW DEEP DIVE", 20, yPos);
+    
+    yPos += 12;
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Step 1 - Understand the problem and establish design scope", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(90, 90, 90);
+    let st1 = doc.splitTextToSize("• Traffic Volume: 100 million URLs generated per day. \n• Write QPS: 100M / 24 / 3600 = 1,160 writes/sec.\n• Read QPS: Assuming a 10:1 Read-to-Write ratio = 11,600 reads/sec.\n• Storage Envelope over 10 years: 365 billion records x 100 bytes = ~365 TB scale.", 170);
+    doc.text(st1, 25, yPos + 6);
+    yPos += 30;
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(0, 0, 0);
-  doc.text("Q2. Database Technology: SQL vs NoSQL trade-offs?", 20, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(90, 90, 90);
-  let q2 = doc.splitTextToSize("A: Relational (SQL) guarantees strict ACID properties (Atomicity, Consistency) making it perfect for transactional safety. NoSQL (Cassandra/DynamoDB) provides immense horizontal scale, flexible schemas, and low-latency reads via denormalization, but frequently compromises on immediate consistency.", 170);
-  doc.text(q2, 25, yPos + 6);
-  yPos += 24;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Step 2 - Propose high-level design (URL Redirecting)", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(90, 90, 90);
+    let st2 = doc.splitTextToSize("✓ 301 Redirect: The URL is permanently moved. The browser caches to reduce server load.\n✓ 302 Redirect: The URL is temporarily moved. Best if analytics are crucial, as it forces each client request through the shortener API first.", 170);
+    doc.text(st2, 25, yPos + 6);
+    yPos += 24;
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(0, 0, 0);
-  doc.text("Q3. What is the optimal caching strategy for this system?", 20, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(90, 90, 90);
-  let q3 = doc.splitTextToSize("A: Implement a Redis/Memcached cluster using a Cache-Aside strategy to absorb heavy read queries. Cache eviction should strictly use LRU (Least Recently Used) coupled with a TTL (Time To Live) to handle stale data safely.", 170);
-  doc.text(q3, 25, yPos + 6);
-  yPos += 20;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Step 3 - Design Deep Dive (Hashing)", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(90, 90, 90);
+    let st3 = doc.splitTextToSize("Capacity mapping: [0-9, a-z, A-Z] = 62 characters. $62^7 = ~3.5$ trillion capacity, which safely covers 365 Billion URLs. Length set to exactly 7 characters.\n\nOption A) Hash + Collision Resolution: Hash with MD5/SHA-1 and truncate first 7 chars. Append sequences upon collisions.\nOption B) Base 62 Conversion: Generate a distributed unique DB integer ID and convert to Base62 string format. Excellent for scale without collision retries.", 170);
+    doc.text(st3, 25, yPos + 6);
+  } else {
+    // Standard Masterclass Output
+    let yPos = 105;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(124, 106, 255);
+    doc.text("TECHNICAL INTERVIEW MASTERCLASS", 20, yPos);
+    
+    yPos += 12;
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Q1. How do we achieve High Availability & fault tolerance?", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(90, 90, 90);
+    let q1 = doc.splitTextToSize("A: Eliminate Single Points of Failure (SPOF) by deploying Active-Active Load Balancers with Heartbeat protocols. We make application servers entirely stateless, enabling rapid horizontal auto-scaling. The Database layer uses Master-Replica streaming across multiple Availability Zones to ensure zero data-loss.", 170);
+    doc.text(q1, 25, yPos + 6);
+    yPos += 24;
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(0, 0, 0);
-  doc.text("Q4. How do we decouple and scale heavy workflows?", 20, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(90, 90, 90);
-  let q4 = doc.splitTextToSize("A: By decoupling heavy synchronous tasks using a distributed Message Queue (Apache Kafka or RabbitMQ). The API Gateway publishes an event payload to the queue and instantly returns an HTTP 202. Dedicated Consumer microservices then pull from the logs at their own pace, providing smooth system-wide back-pressure control.", 170);
-  doc.text(q4, 25, yPos + 6);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Q2. Database Technology: SQL vs NoSQL trade-offs?", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(90, 90, 90);
+    let q2 = doc.splitTextToSize("A: Relational (SQL) guarantees strict ACID properties (Atomicity, Consistency) making it perfect for transactional safety. NoSQL (Cassandra/DynamoDB) provides immense horizontal scale, flexible schemas, and low-latency reads via denormalization, but frequently compromises on immediate consistency.", 170);
+    doc.text(q2, 25, yPos + 6);
+    yPos += 24;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Q3. What is the optimal caching strategy for this system?", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(90, 90, 90);
+    let q3 = doc.splitTextToSize("A: Implement a Redis/Memcached cluster using a Cache-Aside strategy to absorb heavy read queries. Cache eviction should strictly use LRU (Least Recently Used) coupled with a TTL (Time To Live) to handle stale data safely.", 170);
+    doc.text(q3, 25, yPos + 6);
+    yPos += 20;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Q4. How do we decouple and scale heavy workflows?", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(90, 90, 90);
+    let q4 = doc.splitTextToSize("A: By decoupling heavy synchronous tasks using a distributed Message Queue (Apache Kafka or RabbitMQ). The API Gateway publishes an event payload to the queue and instantly returns an HTTP 202. Dedicated Consumer microservices then pull from the logs at their own pace, providing smooth system-wide back-pressure control.", 170);
+    doc.text(q4, 25, yPos + 6);
+  }
   
   // Footer
   doc.setFontSize(9);
