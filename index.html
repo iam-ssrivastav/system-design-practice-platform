@@ -277,6 +277,7 @@
             <button class="panel-tab active" data-panel="simulation" onclick="switchPanel('simulation')">Simulation</button>
             <button class="panel-tab" data-panel="requirements" onclick="switchPanel('requirements')">Requirements</button>
             <button class="panel-tab" data-panel="properties" onclick="switchPanel('properties')">Properties</button>
+            <button class="panel-tab" data-panel="notes" onclick="switchPanel('notes')">Notes</button>
           </div>
 
           <div class="panel-content">
@@ -409,6 +410,20 @@
                     <button class="ws-action-btn" onclick="toggleComponentHealth()" style="flex:1;justify-content:center;font-size:12px;" id="healthToggleBtn">💥 Kill</button>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Notes Panel -->
+            <div class="panel-section" id="panel-notes">
+              <div class="problem-desc-panel" id="notesContent">
+                 <h3>System Design Masterclass</h3>
+                 <p style="margin-bottom: 20px;">Select a problem from the Dashboard to unlock the curated interview notes, Q&A blocks, and complete architectural breakdowns.</p>
+              </div>
+              <div style="padding: 0 16px 16px;">
+                 <button class="start-btn" style="width:100%; border-radius: 8px; font-weight: 800; cursor: pointer; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="alert('Downloading Verified Design Blueprint & Q&A Solutions... (MVP Download)')">
+                    📥 Download Interview PDF
+                 </button>
+                 <p style="text-align:center; font-size: 10px; color: var(--text-muted); margin-top: 8px;">Included with your $10 Early Bird PRO access!</p>
               </div>
             </div>
           </div>

@@ -480,6 +480,28 @@ function renderRequirements() {
   const desc = document.getElementById('problemDescription');
   desc.innerHTML = `<h3>${currentProblem.title}</h3><p>${currentProblem.desc}</p>
     <div class="hint-box"><h4>💡 Hint</h4><p>${currentProblem.hint}</p></div>`;
+    
+  const notesDesc = document.getElementById('notesContent');
+  if (notesDesc) {
+    notesDesc.innerHTML = `<h3>📘 Masterclass: ${currentProblem.title}</h3>
+      <p style="margin-bottom: 20px;">Use the Study Guide below to prepare for your System Design interview.</p>
+      
+      <div style="background: rgba(255,170,0,0.05); border: 1px solid rgba(255,170,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+        <h4 style="color:#ffaa00; font-size:13px; margin-bottom: 8px;">🎯 Interviewer's Focus</h4>
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">The interviewer expects you to explicitly articulate your decisions regarding <strong>${currentProblem.tags.join(', ')}</strong> tradeoffs. Focus heavily on solving: <em>"${currentProblem.hint}"</em> before attempting to scale the system.</p>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: How do we handle Single Points of Failure (SPOF)?</h4>
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: By deploying active-active Load Balancers upstream and clustering the Application Servers. Ensure database replication is continuously synchronised to prevent data-loss during failover events.</p>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: How do you justify the database technology choice?</h4>
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Explicitly select SQL for strict ACID properties and transactional safety (e.g. Payments). You should pivot to NoSQL (Cassandra/DynamoDB) if the system requires massive horizontal write scalability and entirely flexible schemas.</p>
+      </div>
+    `;
+  }
   updateRequirementsList();
 }
 
