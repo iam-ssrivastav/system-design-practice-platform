@@ -1105,10 +1105,34 @@ function downloadMasterclassPDF() {
     addPageFooter(doc, pageNum++);
   }
   
-  // Trigger file download
-  const safeTitle = currentProblem.title.replace(/[^a-zA-Z0-9]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
-  doc.save(`${safeTitle}_Interview_Guide.pdf`);
-  addLog('success', '📄 Downloaded Full Interview PDF Blueprint!');
+  // Trigger file download robustly (fixes Safari UUID filename issue)
+  try {
+    const safeTitle = currentProblem.title.replace(/[^a-zA-Z0-9]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+    const filename = `${safeTitle}_Interview_Guide.pdf`;
+    
+    // Explicitly generate a clean blob with application/pdf MIME type
+    const pdfBlob = doc.output('blob', { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(pdfBlob);
+    
+    // Create an invisible anchor to force download
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 200);
+    
+    addLog('success', '📄 Downloaded Full Interview PDF Blueprint!');
+  } catch (err) {
+    console.error("PDF Generate Error:", err);
+    addLog('error', '⚠️ PDF generation failed. Check console for details.');
+  }
 }
 
 // ---- Canvas Setup ----
