@@ -453,10 +453,15 @@ function renderProblems(filter = 'all') {
     card.className = 'problem-card fade-in';
     card.style.animationDelay = (i * 0.05) + 's';
     
-    // Add Pro badge html if necessary
-    const lockHtml = p.isPremium 
+    // Check if user has unlocked PRO
+    const isProActive = localStorage.getItem('systemforge_pro') === 'true';
+    
+    // Add Pro badge html if necessary and not already unlocked
+    const lockHtml = (p.isPremium && !isProActive)
       ? `<span style="background:var(--accent-warning); color:#fff; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; margin-left:8px;">🔒 PRO</span>` 
       : ``;
+      
+    const btnText = (p.isPremium && !isProActive) ? 'Unlock Pro →' : 'Start →';
 
     card.innerHTML = `
       <div class="problem-card-header">
@@ -470,7 +475,7 @@ function renderProblems(filter = 'all') {
         <div class="problem-meta">
           <span>📋 ${p.requirements.length} requirements</span>
         </div>
-        <button class="start-btn" onclick="startProblem(${p.id})">${p.isPremium ? 'Unlock Pro →' : 'Start →'}</button>
+        <button class="start-btn" onclick="startProblem(${p.id})">${btnText}</button>
       </div>`;
     grid.appendChild(card);
     
@@ -506,8 +511,9 @@ function startProblem(id) {
       return;
   }
 
-  // 2. Paywall Access Restrictor
-  if (p.isPremium) {
+  // 2. Paywall Access Restrictor (Bypassed if user holds a local PRO token)
+  const isProActive = localStorage.getItem('systemforge_pro') === 'true';
+  if (p.isPremium && !isProActive) {
       const modal = document.getElementById('paywallModal');
       document.getElementById('paywallDynamicTitle').innerHTML = `Upgrade to access <br/><span style="color: #ffd700;">${p.title}</span>`;
       modal.style.display = 'flex';
@@ -2928,6 +2934,15 @@ function logoutUser() {
 
 // Auto-login check on page load via Firebase SDK Listener
 window.addEventListener('DOMContentLoaded', () => {
+  // Capture Razorpay successful checkout redirect payload
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('payment') === 'success') {
+    localStorage.setItem('systemforge_pro', 'true');
+    // Clean up the URL so it looks professional while remaining unlocked
+    window.history.replaceState({}, document.title, window.location.pathname);
+    alert('🎉 Payment Successful! SystemForge PRO Lifetime Access is now permanently unlocked on this device.');
+  }
+
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
       document.getElementById('logoutBtn').style.display = 'block';
