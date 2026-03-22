@@ -518,6 +518,71 @@ function updateRequirementsList() {
   }).join('');
 }
 
+// ---- PDF Download Engine ----
+function downloadMasterclassPDF() {
+  if (!currentProblem) return;
+  
+  // Initialize jsPDF engine from CDN
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  // Header Branding
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(22);
+  doc.text(`SYSTEM DESIGN MASTERCLASS`, 20, 20);
+  
+  // Problem Title
+  doc.setFontSize(16);
+  doc.setTextColor(124, 106, 255);
+  doc.text(currentProblem.title, 20, 30);
+  
+  // Problem Description
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+  doc.setTextColor(40, 40, 40);
+  const splitDesc = doc.splitTextToSize(`Overview: ${currentProblem.desc}`, 170);
+  doc.text(splitDesc, 20, 45);
+  
+  // Interviewer Priority Section
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(0, 0, 0);
+  doc.text("🎯 INTERVIEWER'S REQUIRED FOCUS:", 20, 75);
+  doc.setFont("helvetica", "normal");
+  const splitHint = doc.splitTextToSize(`Focus heavily on: ${currentProblem.hint} 
+Be explicitly prepared to discuss ${currentProblem.tags.join(', ')} tradeoffs in depth before scaling out your architecture.`, 170);
+  doc.setFontSize(11);
+  doc.setTextColor(80, 80, 80);
+  doc.text(splitHint, 20, 82);
+  
+  // Mock Q&A Flashcards
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Q: How do you handle Single Points of Failure?", 20, 110);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  doc.text("A: By deploying active-active Load Balancers upstream and clustering the Application Servers. You must\nensure database replication is continuously synchronised to prevent data-loss during failover events.", 20, 117);
+  
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Q: How do you justify your database technology choice?", 20, 135);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  doc.text("A: Explicitly select SQL for strict ACID properties and transactional safety (e.g. Payments). You should pivot\nto NoSQL (Cassandra/DynamoDB) if the system requires massive horizontal write scalability and flexible schemas.", 20, 142);
+  
+  // Footer
+  doc.setFontSize(9);
+  doc.setTextColor(160, 160, 160);
+  doc.text("© 2026 SystemForge PRO System Design Preparation | Downloaded from Editor Workspace", 20, 280);
+  
+  // Trigger file download
+  doc.save(`${currentProblem.title.replace(/\\s+/g, '_')}_Interview_Guide.pdf`);
+  addLog('success', '📄 Downloaded Full Interview PDF Blueprint!');
+}
+
 // ---- Canvas Setup ----
 function initCanvas() {
   canvas = document.getElementById('designCanvas');

@@ -420,7 +420,7 @@
                  <p style="margin-bottom: 20px;">Select a problem from the Dashboard to unlock the curated interview notes, Q&A blocks, and complete architectural breakdowns.</p>
               </div>
               <div style="padding: 0 16px 16px;">
-                 <button class="start-btn" style="width:100%; border-radius: 8px; font-weight: 800; cursor: pointer; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="alert('Downloading Verified Design Blueprint & Q&A Solutions... (MVP Download)')">
+                 <button class="start-btn" style="width:100%; border-radius: 8px; font-weight: 800; cursor: pointer; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="downloadMasterclassPDF()">
                     📥 Download Interview PDF
                  </button>
                  <p style="text-align:center; font-size: 10px; color: var(--text-muted); margin-top: 8px;">Included with your $10 Early Bird PRO access!</p>
@@ -482,6 +482,9 @@
   <!-- FIREBASE PLATFORM SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+
+  <!-- jsPDF EXTERNAL SDK (Client-side PDF compilation) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script src="app.js"></script>
 </body>
