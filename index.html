@@ -327,14 +327,14 @@
                 </div>
 
                 <div style="margin-top:8px;">
-                  <button class="ws-action-btn primary" onclick="startTraceFlow()" id="traceBtn" style="width:100%;justify-content:center;margin-bottom:8px;">
-                    🔍 Trace Logic (Step-by-step)
+                  <button class="ws-action-btn primary" onclick="startTraceFlow()" id="traceBtn" title="Follow the request path step-by-step" style="width:100%;justify-content:center;margin-bottom:8px;">
+                    🔍 Trace Logic Path
                   </button>
-                  <button class="ws-action-btn danger" onclick="injectFailure()" style="width:100%;justify-content:center;margin-bottom:8px;">
-                    💥 Inject Failure (click an active component)
+                  <button class="ws-action-btn danger" onclick="injectFailure()" title="Click any active component on the canvas to simulate a crash/failure" style="width:100%;justify-content:center;margin-bottom:8px;">
+                    💥 Inject Node Failure
                   </button>
-                  <button class="ws-action-btn warning" onclick="stressTest()" style="width:100%;justify-content:center;background:rgba(255,170,0,0.1);border-color:rgba(255,170,0,0.4);color:#ffaa00;margin-bottom:8px;">
-                    🔥 10x Traffic Spike (Stress Test)
+                  <button class="ws-action-btn warning" onclick="stressTest()" title="Trigger a massive 10x traffic spike to stress test your architecture" style="width:100%;justify-content:center;background:rgba(255,170,0,0.1);border-color:rgba(255,170,0,0.4);color:#ffaa00;margin-bottom:8px;">
+                    🔥 10x Traffic Spike
                   </button>
                   <button class="ws-action-btn" onclick="showSystemAdvisor()" style="width:100%;justify-content:center;background:rgba(0,187,255,0.1);color:#00bbff;border-color:rgba(0,187,255,0.4);">
                     🤖 Ask System Advisor
