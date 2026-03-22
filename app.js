@@ -556,145 +556,369 @@ function updateRequirementsList() {
 }
 
 // ---- PDF Download Engine ----
-function downloadMasterclassPDF() {
-  if (!currentProblem) return;
-  
-  // Initialize jsPDF engine from CDN
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  
-  // Background Watermark (Protects IP)
+function addWatermark(doc) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(60);
-  doc.setTextColor(240, 240, 248); // Faint bluish-grey background
-  doc.text("SystemForge PRO", 105, 148, { angle: 45, align: "center" });
-  
-  // Header Branding
+  doc.setTextColor(240, 240, 248);
+  doc.text("SystemForge", 105, 148, { angle: 45, align: "center" });
+}
+
+function addPageFooter(doc, pageNum) {
+  doc.setFontSize(8);
+  doc.setTextColor(160, 160, 160);
+  doc.text(`© 2026 SystemForge PRO | System Design Interview Preparation | Page ${pageNum}`, 20, 285);
+  doc.setDrawColor(220, 220, 230);
+  doc.line(20, 282, 190, 282);
+}
+
+function addSectionTitle(doc, title, yPos) {
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  doc.text(`SYSTEM DESIGN MASTERCLASS`, 20, 20);
-  
-  // Problem Title
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setTextColor(124, 106, 255);
-  doc.text(currentProblem.title, 20, 30);
-  
-  // Problem Description
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(12);
-  doc.setTextColor(40, 40, 40);
-  const splitDesc = doc.splitTextToSize(`Overview: ${currentProblem.desc}`, 170);
-  doc.text(splitDesc, 20, 45);
-  
-  // Interviewer Priority Section
+  doc.text(title, 20, yPos);
+  doc.setDrawColor(124, 106, 255);
+  doc.line(20, yPos + 2, 190, yPos + 2);
+  return yPos + 10;
+}
+
+function addSubSection(doc, title, yPos) {
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(0, 0, 0);
-  doc.text("🎯 INTERVIEWER'S REQUIRED FOCUS:", 20, 75);
-  doc.setFont("helvetica", "normal");
-  const splitHint = doc.splitTextToSize(`Focus heavily on: ${currentProblem.hint} 
-Be explicitly prepared to discuss ${currentProblem.tags.join(', ')} tradeoffs in depth before scaling out your architecture.`, 170);
   doc.setFontSize(11);
+  doc.setTextColor(40, 40, 40);
+  doc.text(title, 20, yPos);
+  return yPos + 6;
+}
+
+function addBody(doc, text, yPos, indent) {
+  indent = indent || 20;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
   doc.setTextColor(80, 80, 80);
-  doc.text(splitHint, 20, 82);
-  
-  if (currentProblem.id === 1) { // Detailed Alex Xu URL Shortener PDF Dump
-    // Mock Q&A Flashcards Context Overwrite
-    let yPos = 105;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(124, 106, 255);
-    doc.text("FAANG INTERVIEW DEEP DIVE", 20, yPos);
+  const lines = doc.splitTextToSize(text, 190 - indent);
+  doc.text(lines, indent, yPos);
+  return yPos + (lines.length * 4.5) + 3;
+}
+
+function downloadMasterclassPDF() {
+  if (!currentProblem) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let pageNum = 1;
+
+  if (currentProblem.id === 1) {
+    // ============================
+    // PAGE 1: Cover + Requirements
+    // ============================
+    addWatermark(doc);
     
-    yPos += 12;
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Step 1 - Understand the problem and establish design scope", 20, yPos);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(90, 90, 90);
-    let st1 = doc.splitTextToSize("• Traffic Volume: 100 million URLs generated per day. \n• Write QPS: 100M / 24 / 3600 = 1,160 writes/sec.\n• Read QPS: Assuming a 10:1 Read-to-Write ratio = 11,600 reads/sec.\n• Storage Envelope over 10 years: 365 billion records x 100 bytes = ~365 TB scale.", 170);
-    doc.text(st1, 25, yPos + 6);
-    yPos += 30;
-
+    // Header
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
+    doc.setFontSize(24);
     doc.setTextColor(0, 0, 0);
-    doc.text("Step 2 - Propose high-level design (URL Redirecting)", 20, yPos);
-    doc.setFont("helvetica", "normal");
+    doc.text("SYSTEM DESIGN MASTERCLASS", 20, 22);
     doc.setFontSize(10);
-    doc.setTextColor(90, 90, 90);
-    let st2 = doc.splitTextToSize("✓ 301 Redirect: The URL is permanently moved. The browser caches to reduce server load.\n✓ 302 Redirect: The URL is temporarily moved. Best if analytics are crucial, as it forces each client request through the shortener API first.", 170);
-    doc.text(st2, 25, yPos + 6);
-    yPos += 24;
-
+    doc.setTextColor(124, 106, 255);
+    doc.text("SystemForge PRO Interview Preparation Series", 20, 29);
+    
+    doc.setDrawColor(124, 106, 255);
+    doc.setLineWidth(0.8);
+    doc.line(20, 32, 190, 32);
+    
+    // Problem Title
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
+    doc.setFontSize(20);
     doc.setTextColor(0, 0, 0);
-    doc.text("Step 3 - Design Deep Dive (Hashing)", 20, yPos);
+    doc.text("URL Shortener (TinyURL)", 20, 44);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(90, 90, 90);
-    let st3 = doc.splitTextToSize("Capacity mapping: [0-9, a-z, A-Z] = 62 characters. $62^7 = ~3.5$ trillion capacity, which safely covers 365 Billion URLs. Length set to exactly 7 characters.\n\nOption A) Hash + Collision Resolution: Hash with MD5/SHA-1 and truncate first 7 chars. Append sequences upon collisions.\nOption B) Base 62 Conversion: Generate a distributed unique DB integer ID and convert to Base62 string format. Excellent for scale without collision retries.", 170);
-    doc.text(st3, 25, yPos + 6);
+    doc.setFontSize(11);
+    doc.setTextColor(80, 80, 80);
+    let desc = doc.splitTextToSize("Design a URL shortening service like TinyURL/Bitly that converts long URLs into compact short links, handles massive read-heavy traffic, and redirects users seamlessly.", 170);
+    doc.text(desc, 20, 52);
+
+    // How to Think
+    let y = 68;
+    y = addSectionTitle(doc, "HOW TO APPROACH THIS PROBLEM", y);
+    y = addBody(doc, "1. Start by clarifying requirements with your interviewer. Never jump to solutions.", y);
+    y = addBody(doc, "2. Estimate scale: QPS, storage, bandwidth. Show you think about numbers.", y);
+    y = addBody(doc, "3. Propose a high-level design first. Get interviewer buy-in before going deep.", y);
+    y = addBody(doc, "4. Deep dive into 1-2 critical components (hashing, database, caching).", y);
+    y = addBody(doc, "5. Discuss trade-offs explicitly. There is no single correct answer.", y);
+    y = addBody(doc, "6. Address edge cases and failure scenarios proactively.", y);
+
+    // Functional Requirements
+    y += 4;
+    y = addSectionTitle(doc, "FUNCTIONAL REQUIREMENTS", y);
+    y = addBody(doc, "FR1: Given a long URL, the service should generate a shorter and unique alias.", y, 25);
+    y = addBody(doc, "FR2: When a user clicks a short link, it should redirect to the original long URL.", y, 25);
+    y = addBody(doc, "FR3: Users should optionally be able to set a custom short link.", y, 25);
+    y = addBody(doc, "FR4: Links should expire after a default timespan. Users can specify expiration.", y, 25);
+    y = addBody(doc, "FR5: The service should expose REST APIs for creating and deleting URLs.", y, 25);
+    
+    // Non-Functional Requirements
+    y += 4;
+    y = addSectionTitle(doc, "NON-FUNCTIONAL REQUIREMENTS", y);
+    y = addBody(doc, "NFR1: High Availability - The system must be up 99.99% of the time (< 52 min downtime/year).", y, 25);
+    y = addBody(doc, "NFR2: Low Latency - URL redirection must happen within < 100ms (P99).", y, 25);
+    y = addBody(doc, "NFR3: Scalability - Must handle 100M+ URL generations per day, 11,600 reads/sec.", y, 25);
+    y = addBody(doc, "NFR4: Durability - Once a short URL is created, it must never be lost.", y, 25);
+    y = addBody(doc, "NFR5: Security - Prevent malicious URL injection. Rate limit API to prevent abuse.", y, 25);
+
+    addPageFooter(doc, pageNum++);
+    
+    // ======================================
+    // PAGE 2: Back-of-Envelope + HLD + APIs
+    // ======================================
+    doc.addPage();
+    addWatermark(doc);
+    
+    y = 20;
+    y = addSectionTitle(doc, "BACK-OF-THE-ENVELOPE ESTIMATION", y);
+    y = addSubSection(doc, "Traffic Estimation", y);
+    y = addBody(doc, "Assumption: 100 million URLs generated per day.", y, 25);
+    y = addBody(doc, "Write QPS: 100,000,000 / 86,400 = ~1,160 writes/sec", y, 25);
+    y = addBody(doc, "Read-to-Write ratio: 10:1 (reads dominate in URL shorteners)", y, 25);
+    y = addBody(doc, "Read QPS: 1,160 x 10 = 11,600 reads/sec", y, 25);
+    
+    y += 2;
+    y = addSubSection(doc, "Storage Estimation", y);
+    y = addBody(doc, "System lifespan: 10 years", y, 25);
+    y = addBody(doc, "Total records: 100M x 365 x 10 = 365 billion URLs", y, 25);
+    y = addBody(doc, "Average URL object size: ~100 bytes (shortURL + longURL + metadata)", y, 25);
+    y = addBody(doc, "Total storage: 365 billion x 100 bytes = ~36.5 TB", y, 25);
+    
+    y += 2;
+    y = addSubSection(doc, "Bandwidth Estimation", y);
+    y = addBody(doc, "Write bandwidth: 1,160 x 100 bytes = ~116 KB/s (negligible)", y, 25);
+    y = addBody(doc, "Read bandwidth: 11,600 x 100 bytes = ~1.16 MB/s", y, 25);
+
+    y += 4;
+    y = addSectionTitle(doc, "HIGH-LEVEL ARCHITECTURE DIAGRAM", y);
+    
+    // ASCII Architecture Diagram
+    doc.setFont("courier", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(40, 40, 40);
+    const diagram = [
+      "+----------+       +----------------+       +------------------+",
+      "|  Client  | ----> | Load Balancer  | ----> |  App Server (x3) |",
+      "| (Browser)|       | (Nginx/ALB)    |       |  (Stateless)     |",
+      "+----------+       +----------------+       +--------+---------+",
+      "                                                     |",
+      "                          +---------------------------+------------------+",
+      "                          |                           |                  |",
+      "                   +------v------+           +--------v-------+  +-------v-------+",
+      "                   | Redis Cache |           | Primary DB     |  | Analytics     |",
+      "                   | (LRU, TTL)  |           | (MySQL/Postgres|  | (Kafka +      |",
+      "                   +-------------+           | + Replicas)    |  |  ClickHouse)  |",
+      "                                             +----------------+  +---------------+"
+    ];
+    diagram.forEach((line, i) => {
+      doc.text(line, 15, y + (i * 4));
+    });
+    y += diagram.length * 4 + 6;
+
+    y = addSectionTitle(doc, "API DESIGN (RESTful)", y);
+    y = addSubSection(doc, "1. Create Short URL (POST)", y);
+    y = addBody(doc, "POST /api/v1/data/shorten", y, 25);
+    y = addBody(doc, "Request Body: { \"longUrl\": \"https://example.com/very-long-path\", \"customAlias\": \"mylink\", \"expireDate\": \"2027-01-01\" }", y, 25);
+    y = addBody(doc, "Response 201: { \"shortUrl\": \"https://tinyurl.com/ab12cd3\" }", y, 25);
+    
+    y += 2;
+    y = addSubSection(doc, "2. Redirect Short URL (GET)", y);
+    y = addBody(doc, "GET /api/v1/{shortUrl}", y, 25);
+    y = addBody(doc, "Response 301/302: Redirect to original longUrl", y, 25);
+    
+    y += 2;
+    y = addSubSection(doc, "3. Delete URL (DELETE)", y);
+    y = addBody(doc, "DELETE /api/v1/data/shorten/{shortUrl}", y, 25);
+    y = addBody(doc, "Response 204: No Content (URL removed)", y, 25);
+
+    addPageFooter(doc, pageNum++);
+    
+    // ====================================
+    // PAGE 3: Deep Dive - Hashing + DB
+    // ====================================
+    doc.addPage();
+    addWatermark(doc);
+    
+    y = 20;
+    y = addSectionTitle(doc, "DEEP DIVE: URL SHORTENING ALGORITHMS", y);
+    
+    y = addSubSection(doc, "Hash Value Length Calculation", y);
+    y = addBody(doc, "Character set: [0-9, a-z, A-Z] = 62 possible characters", y, 25);
+    y = addBody(doc, "n=6: 62^6 = ~56.8 billion (insufficient for 365B records)", y, 25);
+    y = addBody(doc, "n=7: 62^7 = ~3.52 trillion (safely covers 365B URLs)", y, 25);
+    y = addBody(doc, "Conclusion: Hash length = 7 characters", y, 25);
+    
+    y += 4;
+    y = addSubSection(doc, "Option A: Hash + Collision Resolution", y);
+    y = addBody(doc, "1. Apply a well-known hash function (MD5, SHA-1, CRC32) to the long URL.", y, 25);
+    y = addBody(doc, "2. Take the first 7 characters of the hash output.", y, 25);
+    y = addBody(doc, "3. Check DB for collision. If collision exists, append a predefined string and re-hash.", y, 25);
+    y = addBody(doc, "4. Pros: No need for a unique ID generator. Cons: Collision checks add latency.", y, 25);
+    y = addBody(doc, "5. Use Bloom Filter to reduce DB lookups: probabilistic check before querying DB.", y, 25);
+    
+    y += 4;
+    y = addSubSection(doc, "Option B: Base 62 Conversion", y);
+    y = addBody(doc, "1. Generate a globally unique integer ID using a Distributed ID Generator (Twitter Snowflake, DB auto-increment).", y, 25);
+    y = addBody(doc, "2. Convert the integer to a Base62 string: e.g., ID 11157 -> \"2TX\" in Base62.", y, 25);
+    y = addBody(doc, "3. Pros: Guaranteed unique (no collisions). Cons: Short URLs are predictable (sequential).", y, 25);
+    y = addBody(doc, "4. Mitigation: Use Snowflake IDs which embed timestamp + machine ID + sequence.", y, 25);
+    
+    y += 4;
+    y = addSectionTitle(doc, "DATABASE SCHEMA DESIGN", y);
+    
+    // Schema Table
+    doc.setFont("courier", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    const schema = [
+      "+-------------------+------------------+",
+      "| Column            | Type             |",
+      "+-------------------+------------------+",
+      "| id (PK)           | BIGINT AUTO_INCR |",
+      "| short_url (Index) | VARCHAR(7)       |",
+      "| long_url          | VARCHAR(2048)    |",
+      "| created_at        | TIMESTAMP        |",
+      "| expires_at        | TIMESTAMP NULL   |",
+      "| user_id (FK)      | BIGINT           |",
+      "+-------------------+------------------+"
+    ];
+    schema.forEach((line, i) => {
+      doc.text(line, 25, y + (i * 4));
+    });
+    y += schema.length * 4 + 6;
+
+    y = addSubSection(doc, "Why Relational DB (MySQL/PostgreSQL)?", y);
+    y = addBody(doc, "URL mappings are simple key-value relationships with strong consistency needs. Relational DBs provide ACID guarantees. For massive scale, use DB sharding with Consistent Hashing on the short_url column.", y, 25);
+
+    y += 4;
+    y = addSectionTitle(doc, "URL REDIRECTION FLOW (301 vs 302)", y);
+    y = addSubSection(doc, "301 Permanent Redirect", y);
+    y = addBody(doc, "Browser caches the mapping. Subsequent requests bypass the URL shortener entirely. Reduces server load significantly. Best when analytics tracking is NOT critical.", y, 25);
+    y += 2;
+    y = addSubSection(doc, "302 Temporary Redirect", y);
+    y = addBody(doc, "Browser does NOT cache. Every request hits the URL shortener first. Enables click-rate analytics, A/B testing, and geographic tracking. Higher server load but richer data.", y, 25);
+
+    addPageFooter(doc, pageNum++);
+    
+    // ======================================
+    // PAGE 4: Caching + Edge Cases + Q&A
+    // ======================================
+    doc.addPage();
+    addWatermark(doc);
+    
+    y = 20;
+    y = addSectionTitle(doc, "CACHING STRATEGY (Redis)", y);
+    y = addBody(doc, "Read-heavy system (10:1 ratio) demands aggressive caching to reduce DB pressure.", y, 25);
+    y += 2;
+    y = addSubSection(doc, "Cache-Aside Pattern (Lazy Loading)", y);
+    y = addBody(doc, "1. Client requests short URL -> Check Redis cache first.", y, 25);
+    y = addBody(doc, "2. Cache HIT: Return long URL immediately (< 1ms latency).", y, 25);
+    y = addBody(doc, "3. Cache MISS: Query DB, store result in Redis with TTL, then return.", y, 25);
+    y = addBody(doc, "4. Eviction Policy: LRU (Least Recently Used) to keep hot URLs in memory.", y, 25);
+    y = addBody(doc, "5. Cache size estimation: Top 20% of URLs generate 80% of traffic (Pareto). 11,600 RPS x 86,400 sec x 20% = ~200M daily. 200M x 100 bytes = ~20GB Redis cluster.", y, 25);
+    
+    y += 4;
+    y = addSectionTitle(doc, "EDGE CASES & FAILURE SCENARIOS", y);
+    y = addBody(doc, "1. Duplicate Long URLs: Should the same long URL always map to the same short URL? Decision impacts storage and cache hit rates.", y, 25);
+    y = addBody(doc, "2. URL Expiration: Background cleanup job (cron) to purge expired URLs from DB and cache. Handle 404 gracefully for expired links.", y, 25);
+    y = addBody(doc, "3. Rate Limiting: Implement token bucket or sliding window rate limiter at API Gateway to prevent abuse and DDoS attacks.", y, 25);
+    y = addBody(doc, "4. Hot URLs: A viral URL can cause thundering herd on a single cache shard. Solution: Replicate hot keys across multiple Redis nodes.", y, 25);
+    y = addBody(doc, "5. Custom Alias Collision: When users request custom aliases, validate uniqueness against DB before accepting. Return 409 Conflict if taken.", y, 25);
+    y = addBody(doc, "6. Database Failover: Master-Replica setup with automatic failover. Use read replicas for redirection queries. Write to master only.", y, 25);
+    y = addBody(doc, "7. Malicious URLs: Integrate with Google Safe Browsing API or similar service to scan URLs before accepting them into the system.", y, 25);
+
+    y += 4;
+    y = addSectionTitle(doc, "INTERVIEW Q&A FLASHCARDS", y);
+    
+    y = addSubSection(doc, "Q: Why not just use a random string generator instead of hashing?", y);
+    y = addBody(doc, "A: Random strings require a DB uniqueness check on every generation. At 1,160 writes/sec, this creates contention. Base62 conversion from a distributed ID generator guarantees uniqueness without any checks.", y, 25);
+    
+    y = addSubSection(doc, "Q: How do you handle the system going down?", y);
+    y = addBody(doc, "A: Stateless app servers behind a load balancer allow instant failover. Redis Cluster provides automatic shard failover. DB uses streaming replication with auto-promote. DNS-level health checks route traffic away from unhealthy regions.", y, 25);
+    
+    y = addSubSection(doc, "Q: How would you scale this to handle 10x traffic?", y);
+    y = addBody(doc, "A: Horizontal scaling of stateless app servers. Redis cluster auto-sharding. DB partitioning using consistent hashing on short_url. CDN for static assets. Read replicas for geographic distribution.", y, 25);
+
+    y = addSubSection(doc, "Q: What monitoring would you set up?", y);
+    y = addBody(doc, "A: Track metrics: URL creation rate, redirection latency (P50/P95/P99), cache hit ratio (target > 90%), DB connection pool utilization, error rates (4xx/5xx). Use Prometheus + Grafana dashboards with PagerDuty alerting.", y, 25);
+
+    addPageFooter(doc, pageNum++);
+
   } else {
-    // Standard Masterclass Output
-    let yPos = 105;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(124, 106, 255);
-    doc.text("TECHNICAL INTERVIEW MASTERCLASS", 20, yPos);
+    // ==========================================
+    // GENERIC MULTI-PAGE PDF FOR OTHER PROBLEMS
+    // ==========================================
+    addWatermark(doc);
     
-    yPos += 12;
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Q1. How do we achieve High Availability & fault tolerance?", 20, yPos);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(90, 90, 90);
-    let q1 = doc.splitTextToSize("A: Eliminate Single Points of Failure (SPOF) by deploying Active-Active Load Balancers with Heartbeat protocols. We make application servers entirely stateless, enabling rapid horizontal auto-scaling. The Database layer uses Master-Replica streaming across multiple Availability Zones to ensure zero data-loss.", 170);
-    doc.text(q1, 25, yPos + 6);
-    yPos += 24;
-
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
+    doc.setFontSize(24);
     doc.setTextColor(0, 0, 0);
-    doc.text("Q2. Database Technology: SQL vs NoSQL trade-offs?", 20, yPos);
-    doc.setFont("helvetica", "normal");
+    doc.text("SYSTEM DESIGN MASTERCLASS", 20, 22);
     doc.setFontSize(10);
-    doc.setTextColor(90, 90, 90);
-    let q2 = doc.splitTextToSize("A: Relational (SQL) guarantees strict ACID properties (Atomicity, Consistency) making it perfect for transactional safety. NoSQL (Cassandra/DynamoDB) provides immense horizontal scale, flexible schemas, and low-latency reads via denormalization, but frequently compromises on immediate consistency.", 170);
-    doc.text(q2, 25, yPos + 6);
-    yPos += 24;
-
+    doc.setTextColor(124, 106, 255);
+    doc.text("SystemForge PRO Interview Preparation Series", 20, 29);
+    doc.setDrawColor(124, 106, 255);
+    doc.setLineWidth(0.8);
+    doc.line(20, 32, 190, 32);
+    
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
+    doc.setFontSize(20);
     doc.setTextColor(0, 0, 0);
-    doc.text("Q3. What is the optimal caching strategy for this system?", 20, yPos);
+    doc.text(currentProblem.title, 20, 44);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(90, 90, 90);
-    let q3 = doc.splitTextToSize("A: Implement a Redis/Memcached cluster using a Cache-Aside strategy to absorb heavy read queries. Cache eviction should strictly use LRU (Least Recently Used) coupled with a TTL (Time To Live) to handle stale data safely.", 170);
-    doc.text(q3, 25, yPos + 6);
-    yPos += 20;
+    doc.setFontSize(11);
+    doc.setTextColor(80, 80, 80);
+    let gDesc = doc.splitTextToSize(`Overview: ${currentProblem.desc}`, 170);
+    doc.text(gDesc, 20, 52);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Q4. How do we decouple and scale heavy workflows?", 20, yPos);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(90, 90, 90);
-    let q4 = doc.splitTextToSize("A: By decoupling heavy synchronous tasks using a distributed Message Queue (Apache Kafka or RabbitMQ). The API Gateway publishes an event payload to the queue and instantly returns an HTTP 202. Dedicated Consumer microservices then pull from the logs at their own pace, providing smooth system-wide back-pressure control.", 170);
-    doc.text(q4, 25, yPos + 6);
+    let y = 68;
+    y = addSectionTitle(doc, "HOW TO APPROACH THIS PROBLEM", y);
+    y = addBody(doc, "1. Clarify scope: Ask about scale, features, and constraints before designing.", y);
+    y = addBody(doc, "2. Estimate traffic: Calculate QPS, storage, and bandwidth requirements.", y);
+    y = addBody(doc, "3. Propose high-level design with core components, get interviewer buy-in.", y);
+    y = addBody(doc, "4. Deep dive into 1-2 critical areas the interviewer cares about.", y);
+    y = addBody(doc, "5. Discuss trade-offs: Every design decision has pros and cons.", y);
+
+    y += 4;
+    y = addSectionTitle(doc, "INTERVIEWER'S FOCUS AREAS", y);
+    y = addBody(doc, `Key Topics: ${currentProblem.tags.join(', ')}`, y, 25);
+    y = addBody(doc, `Critical Hint: ${currentProblem.hint}`, y, 25);
+
+    y += 4;
+    y = addSectionTitle(doc, "FUNCTIONAL REQUIREMENTS", y);
+    currentProblem.requirements.forEach(r => {
+      y = addBody(doc, `${r.optional ? '[Bonus]' : '[Core]'} ${r.text}`, y, 25);
+    });
+
+    y += 4;
+    y = addSectionTitle(doc, "NON-FUNCTIONAL REQUIREMENTS", y);
+    y = addBody(doc, "NFR1: High Availability (99.99% uptime, multi-AZ deployment)", y, 25);
+    y = addBody(doc, "NFR2: Low Latency (P99 < 200ms for read operations)", y, 25);
+    y = addBody(doc, "NFR3: Scalability (handle 10x traffic spikes gracefully)", y, 25);
+    y = addBody(doc, "NFR4: Data Durability (zero data loss, backup + replication)", y, 25);
+
+    y += 4;
+    y = addSectionTitle(doc, "INTERVIEW Q&A FLASHCARDS", y);
+    
+    y = addSubSection(doc, "Q1: How do you eliminate Single Points of Failure?", y);
+    y = addBody(doc, "A: Deploy Active-Active Load Balancers with health probes. Stateless app servers for horizontal scaling. Database Master-Replica with automatic failover across Availability Zones.", y, 25);
+    
+    y = addSubSection(doc, "Q2: SQL vs NoSQL - how do you choose?", y);
+    y = addBody(doc, "A: SQL for ACID-critical data (payments, user accounts). NoSQL for massive write throughput and flexible schemas (activity feeds, logs). Many systems use both (polyglot persistence).", y, 25);
+
+    y = addSubSection(doc, "Q3: How do you handle a cache stampede?", y);
+    y = addBody(doc, "A: Use cache-aside with distributed locks (Redlock). Implement request coalescing so only one thread fetches from DB while others wait. Set jittered TTLs to prevent mass expiration.", y, 25);
+    
+    y = addSubSection(doc, "Q4: What edge cases would you address?", y);
+    y = addBody(doc, "A: Network partitions (CAP theorem trade-offs), thundering herd on hot keys, data consistency during failover, rate limiting to prevent abuse, graceful degradation under load.", y, 25);
+
+    addPageFooter(doc, pageNum++);
   }
   
-  // Footer
-  doc.setFontSize(9);
-  doc.setTextColor(160, 160, 160);
-  doc.text("© 2026 SystemForge PRO System Design Preparation | Downloaded from Editor Workspace", 20, 280);
-  
   // Trigger file download
-  doc.save(`${currentProblem.title.replace(/\\s+/g, '_')}_Interview_Guide.pdf`);
+  doc.save(`${currentProblem.title.replace(/\s+/g, '_')}_Interview_Guide.pdf`);
   addLog('success', '📄 Downloaded Full Interview PDF Blueprint!');
 }
 
