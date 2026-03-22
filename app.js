@@ -903,10 +903,73 @@ function downloadMasterclassPDF() {
 
   } else {
     // ==========================================
-    // GENERIC MULTI-PAGE PDF FOR OTHER PROBLEMS
+    // RICH MULTI-PAGE PDF FOR ALL OTHER PROBLEMS
     // ==========================================
+    const PROBLEM_NOTES = {
+      2: { // Chat Messaging System
+        title: "Chat Messaging System (WhatsApp)",
+        overview: "Design a real-time chat application supporting 1-on-1 messaging, group chats, read receipts, presence indicators, and media sharing for 500M+ daily active users.",
+        frs: ["FR1: 1-on-1 real-time messaging with delivery confirmation.", "FR2: Group chats supporting up to 256 members.", "FR3: Sent/Delivered/Read receipts for every message.", "FR4: Online/Offline presence indicator.", "FR5: Media sharing (images, videos, documents) up to 100MB.", "FR6: Push notifications for offline users."],
+        nfrs: ["NFR1: Ultra-low latency (<100ms message delivery for online users).", "NFR2: High Availability (99.99% uptime, zero message loss).", "NFR3: Message ordering guarantee within a conversation.", "NFR4: End-to-end encryption (Signal Protocol).", "NFR5: Support 500M+ DAU with 60B+ messages/day."],
+        traffic: ["DAU: 500 million users.", "Messages/day: 60 billion (avg 120 messages/user).", "Write QPS: 60B / 86,400 = ~694,000 writes/sec.", "Peak QPS: ~1.4M writes/sec (2x average).", "Storage/year: 60B x 100 bytes x 365 = ~2.2 PB/year."],
+        diagram: ["+----------+      +----------------+      +------------------+", "|  Mobile  | ---> | Load Balancer  | ---> | WebSocket Server |", "|  Client  |      | (Layer 4/TCP)  |      | (Stateful Conn)  |", "+----------+      +----------------+      +--------+---------+", "                                                   |", "                        +--------------------------+---------------+", "                        |                          |               |", "                 +------v------+          +--------v------+  +----v--------+", "                 | Kafka/Queue |          | Cassandra DB  |  | Push Notif  |", "                 | (Fan-out)   |          | (Messages)    |  | (FCM/APNs)  |", "                 +-------------+          +---------------+  +-------------+"],
+        apis: [{m:"POST",e:"/api/v1/messages/send",b:"{ \"to\": \"userId\", \"content\": \"Hello!\", \"type\": \"text\" }",r:"202 Accepted: { \"messageId\": \"uuid\", \"timestamp\": 1711234567 }"},{m:"GET",e:"/api/v1/messages/{conversationId}?cursor=xxx",b:"Pagination with cursor-based scrolling",r:"200: { \"messages\": [...], \"nextCursor\": \"xxx\" }"},{m:"WebSocket",e:"ws://chat.example.com/connect",b:"Persistent bidirectional connection for real-time delivery",r:"Frames: message, ack, typing, presence"}],
+        deepDive: {title:"Message Delivery & Ordering", points:["Use WebSocket for real-time bidirectional communication. HTTP long-polling as fallback.", "Message ordering: Use Snowflake-style IDs (timestamp + server + sequence) per conversation.", "Fan-out: When User A sends to Group, publish to Kafka topic. Each member's WebSocket server consumes.", "Offline delivery: Store undelivered messages in Cassandra. Push via FCM/APNs. Deliver on reconnect.", "Read receipts: Client sends ACK with messageId. Server updates status: sent -> delivered -> read."]},
+        schema: ["+-------------------+------------------+", "| Column            | Type             |", "+-------------------+------------------+", "| message_id (PK)   | BIGINT (Snowflake|", "| conversation_id   | UUID             |", "| sender_id         | BIGINT           |", "| content           | TEXT (encrypted) |", "| type              | ENUM(text,media) |", "| status            | ENUM(sent,dlvd)  |", "| created_at        | TIMESTAMP        |", "+-------------------+------------------+"],
+        caching: ["Cache recent conversations per user in Redis (last 50 messages).", "Presence cache: User online/offline status with TTL (30s heartbeat).", "Group member list cache to avoid DB lookup on every group message.", "Cache size: 500M users x 50 msgs x 200 bytes = ~5TB Redis cluster."],
+        edgeCases: ["1. Message ordering across multiple devices (use vector clocks or last-write-wins).", "2. Group message storm: 256-member group = 256 fan-out writes per message.", "3. Connection drops mid-message: Client-side retry with idempotency key.", "4. Media upload timeout: Use pre-signed S3 URLs for direct client upload.", "5. Spam/abuse: Rate limit messages per user (e.g., 100 msgs/min).", "6. Data migration: Schema evolution without downtime using dual-write strategy."],
+        qna: [{q:"Why WebSocket over HTTP polling?",a:"WebSocket maintains a persistent TCP connection, enabling sub-100ms delivery. HTTP polling wastes bandwidth with empty responses and adds 1-2s latency."},{q:"How do you guarantee message ordering?",a:"Assign monotonically increasing Snowflake IDs per conversation. Client-side sorts by ID. Server enforces sequence within a partition key."},{q:"How do you handle 500M concurrent connections?",a:"Horizontally scale WebSocket servers. Use consistent hashing to map userId -> server. Store connection mapping in Redis for cross-server delivery."},{q:"Why Cassandra over MySQL for messages?",a:"Cassandra provides linear write scalability, tunable consistency, and time-series optimized storage (perfect for append-heavy chat logs). MySQL would bottleneck at this write QPS."}]
+      },
+      3: { // Instagram
+        title: "Instagram / Photo Sharing Platform",
+        overview: "Design a photo/video sharing platform supporting uploads, news feed generation, likes, comments, followers, and stories for 2B+ monthly active users.",
+        frs: ["FR1: Upload photos/videos with captions and filters.", "FR2: Follow/unfollow users.", "FR3: Generate personalized news feed from followed users.", "FR4: Like and comment on posts.", "FR5: Stories (24-hour ephemeral content).", "FR6: Search users and hashtags."],
+        nfrs: ["NFR1: News feed generation < 500ms.", "NFR2: Image upload < 2s (perceived latency).", "NFR3: 99.99% availability.", "NFR4: Support 500M+ DAU, 100M+ photos/day.", "NFR5: Eventual consistency acceptable for feeds."],
+        traffic: ["DAU: 500 million.", "Photo uploads: 100 million/day.", "Write QPS: 100M / 86,400 = ~1,160 uploads/sec.", "Feed reads: 500M x 10 opens/day = 5B reads/day = ~58,000 reads/sec.", "Storage/year: 100M x 2MB avg x 365 = ~73 PB/year (images + videos)."],
+        diagram: ["+----------+     +-------+     +----------------+     +--------------+", "|  Mobile  | --> |  CDN  | --> | Load Balancer  | --> |  App Server  |", "|  Client  |     | (Edge)|     | (Nginx/ALB)    |     |  (Stateless) |", "+----------+     +-------+     +----------------+     +------+-------+", "                                                            |", "              +-------------------+-----------------+--------+--------+", "              |                   |                 |                  |", "       +------v------+    +-------v-------+  +------v------+  +-------v------+", "       |   S3/Blob   |    | User/Post DB  |  | Redis Cache |  | Kafka Queue  |", "       |  (Images)   |    | (PostgreSQL)  |  | (Feed Cache)|  | (Feed Gen)   |", "       +-------------+    +---------------+  +-------------+  +--------------+"],
+        apis: [{m:"POST",e:"/api/v1/posts",b:"multipart/form-data: { image, caption, location }",r:"201: { \"postId\": \"uuid\", \"imageUrl\": \"cdn.example.com/...\" }"},{m:"GET",e:"/api/v1/feed?cursor=xxx",b:"Cursor-based pagination for infinite scroll",r:"200: { \"posts\": [...], \"nextCursor\": \"xxx\" }"},{m:"POST",e:"/api/v1/posts/{id}/like",b:"{ }",r:"200: { \"likesCount\": 1234 }"}],
+        deepDive: {title:"News Feed Generation (Fan-out)", points:["Fan-out-on-write for normal users: When User A posts, pre-compute feed for all followers.", "Fan-out-on-read for celebrities (>1M followers): Too expensive to write to millions of feeds.", "Hybrid approach: Fan-out-on-write for users with <10K followers. On-read merge for celebrities.", "Feed storage: Redis sorted sets (score = timestamp) per userId. Keep last 500 posts.", "Ranking: ML-based ranking model scores posts by engagement probability before serving."]},
+        schema: ["+-------------------+------------------+", "| Column            | Type             |", "+-------------------+------------------+", "| post_id (PK)      | UUID             |", "| user_id (FK)      | BIGINT           |", "| image_url         | VARCHAR(512)     |", "| caption           | TEXT             |", "| location          | POINT (lat,lng)  |", "| likes_count       | INT DEFAULT 0    |", "| created_at        | TIMESTAMP        |", "+-------------------+------------------+"],
+        caching: ["Feed cache: Redis sorted sets per user (last 500 post IDs).", "Post cache: Individual post objects cached with TTL.", "User profile cache: Follower/following counts.", "CDN edge caching for all image/video assets (90%+ cache hit ratio)."],
+        edgeCases: ["1. Celebrity posting to 100M followers: Use fan-out-on-read, not write.", "2. Duplicate uploads: Hash image content (perceptual hash) to detect duplicates.", "3. Image resizing: Generate multiple resolutions (thumbnail, medium, full) asynchronously.", "4. Feed consistency: User posts but doesn't see own post immediately (solve with read-after-write consistency).", "5. Delete propagation: Soft delete + async background cleanup from all follower feeds.", "6. NSFW content: ML-based content moderation pipeline before publishing."],
+        qna: [{q:"Fan-out-on-write vs fan-out-on-read?",a:"Write: Pre-compute feeds when a post is created (fast reads, expensive writes). Read: Merge feeds at query time (slow reads, cheap writes). Instagram uses a hybrid: write for normal users, read for celebrities."},{q:"How do you store 73 PB of images?",a:"Object storage (S3/GCS) with CDN. Images are immutable, so cache-friendly. Use content-based addressing for deduplication."},{q:"How do you rank the feed?",a:"ML ranking model considers: post age, engagement history, content type, user relationship strength. Chronological feed is a fallback."},{q:"How do you handle Stories?",a:"Ephemeral storage with 24hr TTL. Store in Redis with auto-expiry. Separate from permanent post storage."}]
+      },
+      4: { // Twitter
+        title: "Twitter / Social Feed Platform",
+        overview: "Design a social media platform supporting tweets, retweets, home timeline, trending topics, search, and notifications for 300M+ DAU.",
+        frs: ["FR1: Post tweets (280 chars + media).", "FR2: Follow/unfollow users.", "FR3: Home timeline (feed of followed users' tweets).", "FR4: Search tweets by keyword/hashtag.", "FR5: Trending topics (real-time).", "FR6: Notifications (mentions, likes, retweets)."],
+        nfrs: ["NFR1: Timeline rendering < 300ms.", "NFR2: Tweet publishing < 500ms (perceived).", "NFR3: 99.99% availability.", "NFR4: 300M DAU, 500M tweets/day.", "NFR5: Eventual consistency for timelines."],
+        traffic: ["DAU: 300 million.", "Tweets/day: 500 million.", "Write QPS: 500M / 86,400 = ~5,800 tweets/sec.", "Timeline reads: 300M x 20 opens/day = 6B = ~69,400 reads/sec.", "Average fanout: 200 followers per user."],
+        diagram: ["+----------+     +-------+     +---------------+     +--------------+", "|  Client  | --> |  CDN  | --> | API Gateway   | --> |  App Server  |", "+----------+     +-------+     | (Rate Limit)  |     |  (Stateless) |", "                                +---------------+     +------+-------+", "                                                            |", "          +-------------------+---------------------+--------+--------+", "          |                   |                     |                  |", "   +------v------+    +-------v--------+    +-------v------+  +-------v-------+", "   | Fan-out Svc |    | Timeline Cache |    |  Tweet DB    |  | ElasticSearch |", "   | (Kafka)     |    | (Redis)        |    | (MySQL Shard)|  | (Search)      |", "   +-------------+    +----------------+    +--------------+  +---------------+"],
+        apis: [{m:"POST",e:"/api/v1/tweets",b:"{ \"content\": \"Hello world!\", \"mediaIds\": [] }",r:"201: { \"tweetId\": \"snowflakeId\", \"createdAt\": \"...\" }"},{m:"GET",e:"/api/v1/timeline/home?cursor=xxx",b:"Cursor pagination",r:"200: { \"tweets\": [...], \"nextCursor\": \"xxx\" }"},{m:"GET",e:"/api/v1/search?q=keyword",b:"ElasticSearch-powered full-text search",r:"200: { \"results\": [...] }"}],
+        deepDive: {title:"Fan-out Strategy for Timeline", points:["Fan-out-on-write: When a tweet is posted, push tweet ID into every follower's Redis timeline.", "For celebrity users (>500K followers): Fan-out-on-read to avoid writing to millions of timelines.", "Timeline service merges: pre-computed timeline + on-demand celebrity tweets at read time.", "Trending: Stream processing (Kafka Streams/Flink) counts hashtags in sliding 5-min windows.", "Search: ElasticSearch cluster indexes tweets by content, hashtags, and user mentions."]},
+        schema: ["+-------------------+------------------+", "| Column            | Type             |", "+-------------------+------------------+", "| tweet_id (PK)     | BIGINT (Snowflake|", "| user_id (FK)      | BIGINT           |", "| content           | VARCHAR(280)     |", "| media_urls        | JSON             |", "| retweet_of        | BIGINT NULL      |", "| reply_to          | BIGINT NULL      |", "| created_at        | TIMESTAMP        |", "+-------------------+------------------+"],
+        caching: ["Home timeline: Redis list per user (last 800 tweet IDs).", "Tweet object cache: Individual tweet data with 24h TTL.", "User profile + follower count cache.", "Trending topics cache: Refresh every 5 minutes from stream processor."],
+        edgeCases: ["1. Celebrity tweet storm: Fan-out to 50M followers would take minutes. Use hybrid approach.", "2. Delete tweet: Remove from author's timeline + async purge from follower caches.", "3. Edit tweet: Twitter's approach — create new version, keep audit trail.", "4. Spam bots: ML classifier + rate limiting (max 100 tweets/hour).", "5. Viral tweet: Cache hot tweets at CDN edge to reduce origin load.", "6. Real-time trending manipulation: Anomaly detection on hashtag velocity."],
+        qna: [{q:"Why fan-out-on-write for normal users?",a:"With avg 200 followers, writing to 200 Redis lists is fast. Read becomes O(1) — just fetch the pre-built timeline. This optimizes for the common case (reads >> writes)."},{q:"How does Twitter handle search?",a:"ElasticSearch cluster indexes tweets in near-real-time. Inverted index on tokenized content, hashtags, and mentions. Geo-partitioned for low latency."},{q:"How do you calculate trending topics?",a:"Kafka Streams counts hashtag frequency in sliding windows (5min/1hr/24hr). Normalize by historical baseline to detect spikes, not just volume."},{q:"How do you shard the tweet database?",a:"Shard by userId (all tweets by one user on same shard). Enables efficient user-timeline queries. Cross-shard search handled by ElasticSearch."}]
+      }
+    };
+
+    // Fallback content for problems not yet detailed (IDs 5-12)
+    const problemData = PROBLEM_NOTES[currentProblem.id] || {
+      title: currentProblem.title,
+      overview: currentProblem.desc,
+      frs: currentProblem.requirements.map((r,i) => `FR${i+1}: ${r.text}${r.optional ? ' (bonus)' : ''}`),
+      nfrs: ["NFR1: High Availability (99.99% uptime, multi-AZ).", "NFR2: Low Latency (P99 < 200ms for reads).", "NFR3: Horizontal scalability (handle 10x traffic spikes).", "NFR4: Data durability (zero data loss, replication).", "NFR5: Security (authentication, rate limiting, encryption)."],
+      traffic: ["Estimate daily active users and peak QPS.", `Key focus areas: ${currentProblem.tags.join(', ')}.`, "Calculate storage needs for 5-10 year horizon.", "Identify read-to-write ratio for caching decisions.", `Hint: ${currentProblem.hint}`],
+      diagram: ["+----------+      +----------------+      +------------------+", "|  Client  | ---> | Load Balancer  | ---> |  App Server (x3) |", "+----------+      +----------------+      +--------+---------+", "                                                   |", "                        +--------------------------+---------------+", "                        |                          |               |", "                 +------v------+          +--------v------+  +----v--------+", "                 | Cache Layer |          | Database      |  | Message Q   |", "                 | (Redis)     |          | (SQL/NoSQL)   |  | (Kafka)     |", "                 +-------------+          +---------------+  +-------------+"],
+      apis: [{m:"POST",e:"/api/v1/resource",b:"{ ...payload }",r:"201 Created"},{m:"GET",e:"/api/v1/resource/{id}",b:"Path parameter",r:"200 OK: { ...resource }"},{m:"DELETE",e:"/api/v1/resource/{id}",b:"Authorization required",r:"204 No Content"}],
+      deepDive: {title:`Deep Dive: ${currentProblem.tags[0]}`, points:[`Primary challenge: ${currentProblem.hint}`, "Consider horizontal vs vertical scaling trade-offs.", "Evaluate consistency vs availability (CAP theorem).", "Design for failure: What happens when each component goes down?", "Think about data partitioning strategy (hash-based vs range-based)."]},
+      schema: ["+-------------------+------------------+", "| Column            | Type             |", "+-------------------+------------------+", "| id (PK)           | BIGINT / UUID    |", "| key_field (Index) | VARCHAR          |", "| data              | JSON / TEXT      |", "| created_at        | TIMESTAMP        |", "| updated_at        | TIMESTAMP        |", "+-------------------+------------------+"],
+      caching: ["Identify hot data using Pareto principle (80/20 rule).", "Cache-Aside pattern with Redis for read-heavy paths.", "LRU eviction with appropriate TTL based on data freshness needs.", "Estimate cache size: hot_data_percentage x total_data_size."],
+      edgeCases: ["1. Thundering herd: Multiple cache misses on the same key simultaneously.", "2. Data consistency: Stale cache after DB update (use cache invalidation).", "3. Network partitions: Design for CAP theorem trade-offs.", "4. Hot partitions: Uneven load distribution across shards.", "5. Cascading failures: Circuit breaker pattern to isolate failing services.", "6. Schema migration: Zero-downtime changes using dual-write strategy."],
+      qna: [{q:"How do you eliminate Single Points of Failure?",a:"Active-Active Load Balancers, stateless app servers, DB Master-Replica with auto-failover across AZs."},{q:"SQL vs NoSQL - how do you choose?",a:"SQL for ACID-critical data. NoSQL for massive writes and flexible schemas. Many systems use both (polyglot persistence)."},{q:"How do you handle a cache stampede?",a:"Distributed locks (Redlock), request coalescing, jittered TTLs to prevent mass expiration."},{q:"What monitoring would you set up?",a:"Prometheus + Grafana: latency percentiles (P50/P95/P99), error rates, cache hit ratio, DB connection utilization. PagerDuty for alerting."}]
+    };
+
+    // ============================
+    // PAGE 1: Cover + Requirements
+    // ============================
     addWatermark(doc);
-    
     doc.setFont("helvetica", "bold");
     doc.setFontSize(24);
     doc.setTextColor(0, 0, 0);
@@ -917,57 +980,105 @@ function downloadMasterclassPDF() {
     doc.setDrawColor(124, 106, 255);
     doc.setLineWidth(0.8);
     doc.line(20, 32, 190, 32);
-    
+
     doc.setFont("helvetica", "bold");
     doc.setFontSize(20);
     doc.setTextColor(0, 0, 0);
-    doc.text(currentProblem.title, 20, 44);
+    doc.text(problemData.title, 20, 44);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     doc.setTextColor(80, 80, 80);
-    let gDesc = doc.splitTextToSize(`Overview: ${currentProblem.desc}`, 170);
-    doc.text(gDesc, 20, 52);
+    let pdDesc = doc.splitTextToSize(problemData.overview, 170);
+    doc.text(pdDesc, 20, 52);
 
-    let y = 68;
+    let y = 66;
     y = addSectionTitle(doc, "HOW TO APPROACH THIS PROBLEM", y);
-    y = addBody(doc, "1. Clarify scope: Ask about scale, features, and constraints before designing.", y);
-    y = addBody(doc, "2. Estimate traffic: Calculate QPS, storage, and bandwidth requirements.", y);
-    y = addBody(doc, "3. Propose high-level design with core components, get interviewer buy-in.", y);
-    y = addBody(doc, "4. Deep dive into 1-2 critical areas the interviewer cares about.", y);
-    y = addBody(doc, "5. Discuss trade-offs: Every design decision has pros and cons.", y);
-
-    y += 4;
-    y = addSectionTitle(doc, "INTERVIEWER'S FOCUS AREAS", y);
-    y = addBody(doc, `Key Topics: ${currentProblem.tags.join(', ')}`, y, 25);
-    y = addBody(doc, `Critical Hint: ${currentProblem.hint}`, y, 25);
+    y = addBody(doc, "1. Clarify requirements with your interviewer. Never jump to solutions.", y);
+    y = addBody(doc, "2. Estimate scale: QPS, storage, bandwidth. Show you think about numbers.", y);
+    y = addBody(doc, "3. Propose a high-level design first. Get interviewer buy-in before going deep.", y);
+    y = addBody(doc, "4. Deep dive into 1-2 critical components the interviewer cares about.", y);
+    y = addBody(doc, "5. Discuss trade-offs explicitly. There is no single correct answer.", y);
+    y = addBody(doc, "6. Address edge cases and failure scenarios proactively.", y);
 
     y += 4;
     y = addSectionTitle(doc, "FUNCTIONAL REQUIREMENTS", y);
-    currentProblem.requirements.forEach(r => {
-      y = addBody(doc, `${r.optional ? '[Bonus]' : '[Core]'} ${r.text}`, y, 25);
-    });
+    problemData.frs.forEach(fr => { y = addBody(doc, fr, y, 25); });
 
     y += 4;
     y = addSectionTitle(doc, "NON-FUNCTIONAL REQUIREMENTS", y);
-    y = addBody(doc, "NFR1: High Availability (99.99% uptime, multi-AZ deployment)", y, 25);
-    y = addBody(doc, "NFR2: Low Latency (P99 < 200ms for read operations)", y, 25);
-    y = addBody(doc, "NFR3: Scalability (handle 10x traffic spikes gracefully)", y, 25);
-    y = addBody(doc, "NFR4: Data Durability (zero data loss, backup + replication)", y, 25);
+    problemData.nfrs.forEach(nfr => { y = addBody(doc, nfr, y, 25); });
+
+    addPageFooter(doc, pageNum++);
+
+    // ======================================
+    // PAGE 2: Back-of-Envelope + HLD + APIs
+    // ======================================
+    doc.addPage();
+    addWatermark(doc);
+    y = 20;
+    y = addSectionTitle(doc, "BACK-OF-THE-ENVELOPE ESTIMATION", y);
+    problemData.traffic.forEach(t => { y = addBody(doc, t, y, 25); });
+
+    y += 4;
+    y = addSectionTitle(doc, "HIGH-LEVEL ARCHITECTURE DIAGRAM", y);
+    doc.setFont("courier", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(40, 40, 40);
+    problemData.diagram.forEach((line, i) => {
+      doc.text(line, 12, y + (i * 3.5));
+    });
+    y += problemData.diagram.length * 3.5 + 6;
+
+    y = addSectionTitle(doc, "API DESIGN (RESTful)", y);
+    problemData.apis.forEach((api, i) => {
+      y = addSubSection(doc, `${i+1}. ${api.m} ${api.e}`, y);
+      y = addBody(doc, `Request: ${api.b}`, y, 25);
+      y = addBody(doc, `Response: ${api.r}`, y, 25);
+      y += 2;
+    });
+
+    addPageFooter(doc, pageNum++);
+
+    // ====================================
+    // PAGE 3: Deep Dive + DB Schema
+    // ====================================
+    doc.addPage();
+    addWatermark(doc);
+    y = 20;
+    y = addSectionTitle(doc, `DEEP DIVE: ${problemData.deepDive.title.toUpperCase()}`, y);
+    problemData.deepDive.points.forEach(p => { y = addBody(doc, p, y, 25); });
+
+    y += 4;
+    y = addSectionTitle(doc, "DATABASE SCHEMA DESIGN", y);
+    doc.setFont("courier", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    problemData.schema.forEach((line, i) => {
+      doc.text(line, 25, y + (i * 4));
+    });
+    y += problemData.schema.length * 4 + 6;
+
+    y = addSectionTitle(doc, "CACHING STRATEGY", y);
+    problemData.caching.forEach(c => { y = addBody(doc, c, y, 25); });
+
+    addPageFooter(doc, pageNum++);
+
+    // ======================================
+    // PAGE 4: Edge Cases + Q&A
+    // ======================================
+    doc.addPage();
+    addWatermark(doc);
+    y = 20;
+    y = addSectionTitle(doc, "EDGE CASES & FAILURE SCENARIOS", y);
+    problemData.edgeCases.forEach(ec => { y = addBody(doc, ec, y, 25); });
 
     y += 4;
     y = addSectionTitle(doc, "INTERVIEW Q&A FLASHCARDS", y);
-    
-    y = addSubSection(doc, "Q1: How do you eliminate Single Points of Failure?", y);
-    y = addBody(doc, "A: Deploy Active-Active Load Balancers with health probes. Stateless app servers for horizontal scaling. Database Master-Replica with automatic failover across Availability Zones.", y, 25);
-    
-    y = addSubSection(doc, "Q2: SQL vs NoSQL - how do you choose?", y);
-    y = addBody(doc, "A: SQL for ACID-critical data (payments, user accounts). NoSQL for massive write throughput and flexible schemas (activity feeds, logs). Many systems use both (polyglot persistence).", y, 25);
-
-    y = addSubSection(doc, "Q3: How do you handle a cache stampede?", y);
-    y = addBody(doc, "A: Use cache-aside with distributed locks (Redlock). Implement request coalescing so only one thread fetches from DB while others wait. Set jittered TTLs to prevent mass expiration.", y, 25);
-    
-    y = addSubSection(doc, "Q4: What edge cases would you address?", y);
-    y = addBody(doc, "A: Network partitions (CAP theorem trade-offs), thundering herd on hot keys, data consistency during failover, rate limiting to prevent abuse, graceful degradation under load.", y, 25);
+    problemData.qna.forEach(qa => {
+      y = addSubSection(doc, `Q: ${qa.q}`, y);
+      y = addBody(doc, `A: ${qa.a}`, y, 25);
+      y += 2;
+    });
 
     addPageFooter(doc, pageNum++);
   }
