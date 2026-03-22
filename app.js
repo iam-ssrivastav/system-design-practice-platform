@@ -498,15 +498,15 @@ function startProblem(id) {
   const p = PROBLEMS.find(x => x.id === id);
   if (!p) return;
 
-  // Authentication Check 
-  // (URL Shortener bypasses Auth so guests can experience the simulator friction-free)
+  // 1. Authentication Check 
+  // (URL Shortener is free and bypasses auth so guests experience the simulator friction-free)
   if (!firebase.auth().currentUser && p.id !== 1) {
       alert("🔒 Please Log In or Sign Up first to access this problem!");
       showPage('auth');
       return;
   }
-  
-  // Paywall Access Restrictor
+
+  // 2. Paywall Access Restrictor
   if (p.isPremium) {
       if(confirm(`🔒 Upgrade to SystemForge PRO to access ${p.title}!\n\nUnlock unlimited FAANG interviews, masterclass PDFs, and all advanced components for just ₹799 ($10).\n\nClick OK to proceed to secure Razorpay checkout.`)) {
          window.open("https://rzp.io/rzp/aVExvTId", "_blank");
@@ -599,7 +599,19 @@ function renderRequirements() {
   const notesDesc = document.getElementById('notesContent');
   if (notesDesc) {
     if (currentProblem.id === 1) { // Detailed Alex Xu integration for URL Shortener
-      notesDesc.innerHTML = `<h3>📘 Masterclass: URL Shortener</h3>
+      if (!firebase.auth().currentUser) {
+        notesDesc.innerHTML = `
+          <div style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 52px; margin-bottom: 20px; animation: float 3s ease-in-out infinite;">🔒</div>
+            <h3 style="margin-bottom: 12px; font-size: 20px; color: var(--text-primary);">Masterclass Locked</h3>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; line-height: 1.6;">You are currently in Guest Mode. To read the full back-of-the-envelope maths, architectural deep dives, and download the PDF Study Guide for this problem, please create a free account.</p>
+            <button class="ws-action-btn primary" onclick="showPage('auth')" style="margin: 0 auto; display: inline-flex; padding: 12px 28px; font-size: 15px;">Sign Up for Free Unlock</button>
+          </div>
+        `;
+        if (document.getElementById('pdfDownloadWrapper')) document.getElementById('pdfDownloadWrapper').style.display = 'none';
+      } else {
+        if (document.getElementById('pdfDownloadWrapper')) document.getElementById('pdfDownloadWrapper').style.display = 'block';
+        notesDesc.innerHTML = `<h3>📘 Masterclass: URL Shortener</h3>
         <p style="margin-bottom: 20px;">Use the Study Guide below to prepare for your System Design interview.</p>
         
         <div style="background: rgba(124,106,255,0.05); border: 1px solid rgba(124,106,255,0.2); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
@@ -623,7 +635,9 @@ function renderRequirements() {
           <strong>Algorithms:</strong> Use <strong>Base 62 Conversion</strong> (mapping a unique DB distributed sequential ID to a Base62 string), OR use <strong>Hash + Collision Resolution</strong> (utilize MD5/SHA-1 and truncate the first 7 chars, appending sequences until unique).</p>
         </div>
       `;
+      }
     } else {
+      if (document.getElementById('pdfDownloadWrapper')) document.getElementById('pdfDownloadWrapper').style.display = 'block';
       notesDesc.innerHTML = `<h3>📘 Masterclass: ${currentProblem.title}</h3>
         <p style="margin-bottom: 20px;">Use the Study Guide below to prepare for your System Design interview.</p>
         
