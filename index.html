@@ -145,9 +145,12 @@
             <span class="difficulty-badge" id="ws-difficulty"></span>
           </div>
           <div class="workspace-actions">
+            <button class="ws-action-btn" onclick="saveDesign()" title="Save your current progress so you don't lose it on logout">💾 Save</button>
+            <button class="ws-action-btn" id="loadSavedBtn" onclick="loadSavedDesign()" title="Restore your last saved progress for this problem" style="display:none; color: #7c6aff; border-color: rgba(124, 106, 255, 0.3);">📥 Load Save</button>
+            <div class="toolbar-divider" style="height:24px;width:1px;background:rgba(255,255,255,0.1);margin:0 4px;"></div>
             <button class="ws-action-btn" onclick="clearCanvas()" title="Clear all components">🗑️ Clear</button>
             <button class="ws-action-btn" onclick="resetSimulation()" title="Reset simulation">🔄 Reset</button>
-            <button class="ws-action-btn" onclick="loadExample()" title="Load pre-built example architecture" style="border-color:rgba(0,212,170,0.3);color:var(--accent-secondary);">📦 Load Example</button>
+            <button class="ws-action-btn" onclick="loadExample()" title="Load pre-built example architecture" style="border-color:rgba(0,212,170,0.3);color:var(--accent-secondary);">📦 Expert View</button>
             <button class="ws-action-btn primary" onclick="evaluateDesign()" title="Check your design">✅ Evaluate</button>
           </div>
         </div>

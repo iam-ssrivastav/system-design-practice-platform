@@ -525,9 +525,60 @@ function startProblem(id) {
   const badge = document.getElementById('ws-difficulty');
   badge.textContent = currentProblem.difficulty;
   badge.className = 'difficulty-badge ' + currentProblem.difficulty;
+  
+  // Show/Hide Load Save button based on LocalStorage
+  if (localStorage.getItem(`systemforge_save_${currentProblem.id}`)) {
+    document.getElementById('loadSavedBtn').style.display = 'inline-flex';
+  } else {
+    document.getElementById('loadSavedBtn').style.display = 'none';
+  }
+  
   renderRequirements();
   showPage('workspace');
   addLog('info', `Loaded problem: ${currentProblem.title}`);
+}
+
+// ==== STATE MANAGEMENT ====
+function saveDesign() {
+  if (!currentProblem) return;
+  const state = {
+    components: components,
+    connections: connections,
+    nextCompId: nextCompId,
+    panX: panX,
+    panY: panY,
+    zoom: zoom
+  };
+  localStorage.setItem(`systemforge_save_${currentProblem.id}`, JSON.stringify(state));
+  document.getElementById('loadSavedBtn').style.display = 'inline-flex';
+  addLog('success', '💾 Design saved successfully!');
+}
+
+function loadSavedDesign() {
+  if (!currentProblem) return;
+  const saved = localStorage.getItem(`systemforge_save_${currentProblem.id}`);
+  if (!saved) return addLog('error', 'No saved design found.');
+  
+  try {
+    const state = JSON.parse(saved);
+    components = state.components || [];
+    connections = state.connections || [];
+    nextCompId = state.nextCompId || 1;
+    panX = state.panX || 0;
+    panY = state.panY || 0;
+    zoom = state.zoom || 1;
+    
+    // clear sim state
+    simPackets = [];
+    simStats = { throughput:0, latency:0, errors:0, total:0, success:0 };
+    stopTraceFlow();
+    
+    renderCanvas();
+    addLog('info', '📥 Restored saved design architecture');
+  } catch (e) {
+    console.error(e);
+    addLog('error', 'Failed to load saved design (corrupt data)');
+  }
 }
 
 function renderRequirements() {
