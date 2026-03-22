@@ -498,6 +498,13 @@ function startProblem(id) {
   const p = PROBLEMS.find(x => x.id === id);
   if (!p) return;
   
+  // Authentication Check - MUST BE LOGGED IN to access workspace
+  if (!firebase.auth().currentUser) {
+      alert("🔒 Please Log In or Sign Up first to start practicing!");
+      showPage('auth');
+      return;
+  }
+  
   // Paywall Access Restrictor
   if (p.isPremium) {
       if(confirm(`🔒 Upgrade to SystemForge PRO to access ${p.title}!\n\nUnlock unlimited FAANG interviews, masterclass PDFs, and all advanced components for just ₹799 ($10).\n\nClick OK to proceed to secure Razorpay checkout.`)) {
@@ -2877,6 +2884,8 @@ function loginSuccess() {
   document.getElementById('page-auth').classList.remove('active');
   document.getElementById('page-dashboard').classList.add('active');
   document.getElementById('mainNav').style.display = 'flex';
+  document.getElementById('logoutBtn').style.display = 'block';
+  document.getElementById('loginBtnNav').style.display = 'none';
   showPage('dashboard');
   
   // Revert button logic visually
@@ -2886,8 +2895,9 @@ function loginSuccess() {
 
 function logoutUser() {
   firebase.auth().signOut().then(() => {
-    document.getElementById('mainNav').style.display = 'none';
-    showPage('auth');
+    document.getElementById('logoutBtn').style.display = 'none';
+    document.getElementById('loginBtnNav').style.display = 'block';
+    showPage('dashboard');
   }).catch((error) => {
     console.error("Sign Out Error", error);
   });
@@ -2897,10 +2907,21 @@ function logoutUser() {
 window.addEventListener('DOMContentLoaded', () => {
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
-      loginSuccess();
+      document.getElementById('logoutBtn').style.display = 'block';
+      document.getElementById('loginBtnNav').style.display = 'none';
+      if(document.getElementById('page-auth').classList.contains('active')){
+         showPage('dashboard');
+      }
     } else {
-      showPage('auth');
+      document.getElementById('logoutBtn').style.display = 'none';
+      document.getElementById('loginBtnNav').style.display = 'block';
+      // Force Dashboard as the default landing page for unauthenticated traffic
+      if(document.getElementById('page-auth').classList.contains('active')) {
+         showPage('dashboard');
+      }
     }
+    // Always show nav bar headers (Dashboard, Contact)
+    document.getElementById('mainNav').style.display = 'flex';
   });
 });
 

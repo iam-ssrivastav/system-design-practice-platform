@@ -29,7 +29,8 @@
     <div class="nav-links" id="navLinks">
       <a href="mailto:sysforgetool@gmail.com" class="nav-link" style="text-decoration:none;">Contact Us</a>
       <button class="nav-link active" data-page="dashboard" onclick="showPage('dashboard')">Dashboard</button>
-      <button class="nav-link" onclick="logoutUser()">Logout</button>
+      <button class="nav-link" id="loginBtnNav" onclick="showPage('auth')">Login / Sign Up</button>
+      <button class="nav-link" id="logoutBtn" onclick="logoutUser()" style="display:none;">Logout</button>
     </div>
   </nav>
 
@@ -37,7 +38,7 @@
   <div class="app-container">
   
     <!-- ===== AUTHENTICATION PAGE ===== -->
-    <div class="page active" id="page-auth">
+    <div class="page" id="page-auth">
       <!-- Floating System Design Icons Background -->
       <div id="floatingIcons" style="position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; pointer-events:none; z-index:0;"></div>
 
@@ -67,7 +68,7 @@
     </div>
 
     <!-- ===== DASHBOARD PAGE ===== -->
-    <div class="page" id="page-dashboard">
+    <div class="page active" id="page-dashboard">
       <div class="hero">
         <div class="hero-badge">⚡ Interactive System Design Practice</div>
         <h1>Master <span class="gradient-text">System Design</span><br/>With Real Simulation</h1>
