@@ -494,6 +494,23 @@
         </div>
       </div>
     </div>
+    
+    <!-- Paywall Modal (Replaces browser confirm) -->
+    <div class="modal-overlay" id="paywallModal" style="display:none; z-index: 10000; align-items:center; justify-content:center; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);">
+      <div class="modal" style="background: var(--bg-surface); padding: 32px; border-radius: 16px; border: 1px solid rgba(255,215,0,0.3); max-width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+        <div style="font-size: 50px; margin-bottom: 20px; color: #ffd700;">🔒</div>
+        <h2 id="paywallDynamicTitle" style="color: var(--text-primary); margin-bottom: 12px; font-size: 20px; line-height: 1.4;">Upgrade to <span style="color: #ffd700;">SystemForge PRO</span></h2>
+        <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; font-size: 15px;">Unlock the complete <strong>FAANG System Design Suite</strong> including interactive simulations, unmetered network stress tests, and 10+ downloadable masterclass PDFs.</p>
+        <div style="background: rgba(0,0,0,0.5); border-radius: 8px; padding: 12px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.05);">
+           <span style="display:block; color: var(--text-muted); font-size: 13px; text-decoration: line-through;">Regular Price: $49/mo</span>
+           <span style="display:block; color: #00d4aa; font-weight: bold; font-size: 18px; margin-top: 4px;">Lifetime Access: ₹799 ($10)</span>
+        </div>
+        <div style="display:flex; gap: 12px; justify-content: space-between;">
+           <button class="ws-action-btn" onclick="document.getElementById('paywallModal').style.display='none'" style="flex: 1; padding: 12px; justify-content: center;">Cancel</button>
+           <button class="ws-action-btn primary" onclick="window.open('https://rzp.io/rzp/aVExvTId', '_blank'); document.getElementById('paywallModal').style.display='none'" style="flex: 2; padding: 12px; justify-content: center; font-weight: bold; background: linear-gradient(90deg, #3399cc, #2b82ad); border: none;">Go to Razorpay ⚡</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Tooltip -->
     <div class="tooltip" id="tooltip"></div>
