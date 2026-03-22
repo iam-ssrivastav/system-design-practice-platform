@@ -497,10 +497,11 @@ document.getElementById('filterBar').addEventListener('click', e => {
 function startProblem(id) {
   const p = PROBLEMS.find(x => x.id === id);
   if (!p) return;
-  
-  // Authentication Check - MUST BE LOGGED IN to access workspace
-  if (!firebase.auth().currentUser) {
-      alert("🔒 Please Log In or Sign Up first to start practicing!");
+
+  // Authentication Check 
+  // (URL Shortener bypasses Auth so guests can experience the simulator friction-free)
+  if (!firebase.auth().currentUser && p.id !== 1) {
+      alert("🔒 Please Log In or Sign Up first to access this problem!");
       showPage('auth');
       return;
   }
