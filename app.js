@@ -500,8 +500,9 @@ function startProblem(id) {
   
   // Paywall Access Restrictor
   if (p.isPremium) {
-      alert("🔒 Upgrade to SystemForge PRO ($10) to access this FAANG simulation! (Stripe integration active).");
-      // window.location.href = "https://buy.stripe.com/your-payment-link";
+      if(confirm(`🔒 Upgrade to SystemForge PRO to access ${p.title}!\n\nUnlock unlimited FAANG interviews, masterclass PDFs, and all advanced components for just ₹799 ($10).\n\nClick OK to proceed to secure Razorpay checkout.`)) {
+         window.open("https://razorpay.me/@sysforge", "_blank");
+      }
       return;
   }
 
