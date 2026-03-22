@@ -492,13 +492,23 @@ function renderRequirements() {
       </div>
 
       <div style="margin-bottom: 16px;">
-        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: How do we handle Single Points of Failure (SPOF)?</h4>
-        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: By deploying active-active Load Balancers upstream and clustering the Application Servers. Ensure database replication is continuously synchronised to prevent data-loss during failover events.</p>
+        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: How do we achieve High Availability & fault tolerance?</h4>
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Eliminate Single Points of Failure (SPOF) by deploying Active-Active Load Balancers with Heartbeat protocols. We make application servers entirely stateless, enabling rapid horizontal auto-scaling. The Database layer uses Master-Replica streaming across multiple Availability Zones to ensure zero data-loss.</p>
       </div>
       
       <div style="margin-bottom: 16px;">
-        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: How do you justify the database technology choice?</h4>
-        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Explicitly select SQL for strict ACID properties and transactional safety (e.g. Payments). You should pivot to NoSQL (Cassandra/DynamoDB) if the system requires massive horizontal write scalability and entirely flexible schemas.</p>
+        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: Database Technology: SQL vs NoSQL trade-offs?</h4>
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Relational (SQL) guarantees strict ACID properties (Atomicity, Consistency) making it perfect for transactional safety. NoSQL (Cassandra/DynamoDB) provides immense horizontal scale, flexible schemas, and low-latency reads via denormalization, but frequently compromises on immediate consistency.</p>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: What is the optimal caching strategy for this system?</h4>
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: Implement a Redis/Memcached cluster using a Cache-Aside strategy to absorb heavy read queries. Cache eviction should strictly use LRU (Least Recently Used) coupled with a TTL (Time To Live) to handle stale data eviction safely.</p>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-primary);">Q: How do we decouple and scale heavy workflows?</h4>
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">A: By decoupling heavy synchronous tasks using a distributed Message Queue (Apache Kafka or RabbitMQ). The API Gateway publishes an event payload to the queue and instantly returns an HTTP 202. Dedicated Consumer microservices then pull from the logs at their own pace, providing smooth system-wide back-pressure control.</p>
       </div>
     `;
   }
@@ -561,23 +571,54 @@ Be explicitly prepared to discuss ${currentProblem.tags.join(', ')} tradeoffs in
   doc.text(splitHint, 20, 82);
   
   // Mock Q&A Flashcards
+  let yPos = 105;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(0, 0, 0);
-  doc.text("Q: How do you handle Single Points of Failure?", 20, 110);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  doc.text("A: By deploying active-active Load Balancers upstream and clustering the Application Servers. You must\nensure database replication is continuously synchronised to prevent data-loss during failover events.", 20, 117);
+  doc.setFontSize(14);
+  doc.setTextColor(124, 106, 255);
+  doc.text("TECHNICAL INTERVIEW MASTERCLASS", 20, yPos);
   
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
+  yPos += 12;
+  doc.setFontSize(11);
   doc.setTextColor(0, 0, 0);
-  doc.text("Q: How do you justify your database technology choice?", 20, 135);
+  doc.text("Q1. How do we achieve High Availability & fault tolerance?", 20, yPos);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  doc.text("A: Explicitly select SQL for strict ACID properties and transactional safety (e.g. Payments). You should pivot\nto NoSQL (Cassandra/DynamoDB) if the system requires massive horizontal write scalability and flexible schemas.", 20, 142);
+  doc.setTextColor(90, 90, 90);
+  let q1 = doc.splitTextToSize("A: Eliminate Single Points of Failure (SPOF) by deploying Active-Active Load Balancers with Heartbeat protocols. We make application servers entirely stateless, enabling rapid horizontal auto-scaling. The Database layer uses Master-Replica streaming across multiple Availability Zones to ensure zero data-loss.", 170);
+  doc.text(q1, 25, yPos + 6);
+  yPos += 24;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Q2. Database Technology: SQL vs NoSQL trade-offs?", 20, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(90, 90, 90);
+  let q2 = doc.splitTextToSize("A: Relational (SQL) guarantees strict ACID properties (Atomicity, Consistency) making it perfect for transactional safety. NoSQL (Cassandra/DynamoDB) provides immense horizontal scale, flexible schemas, and low-latency reads via denormalization, but frequently compromises on immediate consistency.", 170);
+  doc.text(q2, 25, yPos + 6);
+  yPos += 24;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Q3. What is the optimal caching strategy for this system?", 20, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(90, 90, 90);
+  let q3 = doc.splitTextToSize("A: Implement a Redis/Memcached cluster using a Cache-Aside strategy to absorb heavy read queries. Cache eviction should strictly use LRU (Least Recently Used) coupled with a TTL (Time To Live) to handle stale data safely.", 170);
+  doc.text(q3, 25, yPos + 6);
+  yPos += 20;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Q4. How do we decouple and scale heavy workflows?", 20, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(90, 90, 90);
+  let q4 = doc.splitTextToSize("A: By decoupling heavy synchronous tasks using a distributed Message Queue (Apache Kafka or RabbitMQ). The API Gateway publishes an event payload to the queue and instantly returns an HTTP 202. Dedicated Consumer microservices then pull from the logs at their own pace, providing smooth system-wide back-pressure control.", 170);
+  doc.text(q4, 25, yPos + 6);
   
   // Footer
   doc.setFontSize(9);
