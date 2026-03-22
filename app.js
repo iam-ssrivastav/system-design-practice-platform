@@ -1,3 +1,9 @@
+// ---- Feature Toggles ----
+function toggleMobileMenu() {
+  const menu = document.getElementById('navLinks');
+  if (menu) menu.classList.toggle('open');
+}
+
 // ---- Problem Data ----
 const PROBLEMS = [
   { id:1, title:"URL Shortener", difficulty:"easy", category:"url-shortener", isPremium:false,
@@ -368,6 +374,13 @@ function showPage(page) {
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
   document.querySelector(`.nav-link[data-page="${page}"]`)?.classList.add('active');
   currentPage = page;
+
+  // Close mobile menu if open
+  const menu = document.getElementById('navLinks');
+  if (menu && menu.classList.contains('open')) {
+    menu.classList.remove('open');
+  }
+
   if (page === 'workspace') { initCanvas(); renderCanvas(); }
 }
 
