@@ -790,7 +790,7 @@ function downloadMasterclassPDF() {
       "                                             +----------------+  +---------------+"
     ];
     diagram.forEach((line, i) => {
-      doc.text(line, 15, y + (i * 4));
+      doc.text(sanitizeForPDF(line), 15, y + (i * 4));
     });
     y += diagram.length * 4 + 6;
 
@@ -862,7 +862,7 @@ function downloadMasterclassPDF() {
       "+-------------------+------------------+"
     ];
     schema.forEach((line, i) => {
-      doc.text(line, 25, y + (i * 4));
+      doc.text(sanitizeForPDF(line), 25, y + (i * 4));
     });
     y += schema.length * 4 + 6;
 
@@ -1047,7 +1047,7 @@ function downloadMasterclassPDF() {
     doc.setFontSize(7);
     doc.setTextColor(40, 40, 40);
     problemData.diagram.forEach((line, i) => {
-      doc.text(line, 12, y + (i * 3.5));
+      doc.text(sanitizeForPDF(line), 12, y + (i * 3.5));
     });
     y += problemData.diagram.length * 3.5 + 6;
 
@@ -1076,7 +1076,7 @@ function downloadMasterclassPDF() {
     doc.setFontSize(9);
     doc.setTextColor(40, 40, 40);
     problemData.schema.forEach((line, i) => {
-      doc.text(line, 25, y + (i * 4));
+      doc.text(sanitizeForPDF(line), 25, y + (i * 4));
     });
     y += problemData.schema.length * 4 + 6;
 
